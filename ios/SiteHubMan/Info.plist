@@ -36,7 +36,7 @@
       </dict>
     </array>
     <key>CFBundleVersion</key>
-    <string>89</string>
+    <string>90</string>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
     <key>LSMinimumSystemVersion</key>
@@ -56,8 +56,6 @@
     <string>Allow SiteHub to access your camera to scan card QR codes.</string>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>SiteHub uses location to provide relevant local services and events.</string>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>Allow $(PRODUCT_NAME) to access your microphone</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>SiteHub needs photo library access to save NFC card designs and profile pictures.</string>
     <key>NSPhotoLibraryUsageDescription</key>

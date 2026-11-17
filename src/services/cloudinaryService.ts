@@ -100,18 +100,6 @@ function normalizePublicId(publicId?: string) {
   return normalized.slice(0, 160);
 }
 
-/** Compress on dev/production builds; skip when native module is unavailable (e.g. Expo Go). */
-async function compressVideoUri(uri: string): Promise<string> {
-  if (Platform.OS === 'web') return uri;
-
-  try {
-    const { Video } = await import('react-native-compressor');
-    return await Video.compress(uri, { compressionMethod: 'auto' });
-  } catch {
-    return uri;
-  }
-}
-
 async function getNativeFileSize(uri: string): Promise<number | null> {
   if (Platform.OS === 'web') return null;
   try {
@@ -293,11 +281,7 @@ export async function uploadVideoToCloudinary(
   }
 
   const formData = new FormData();
-  let finalUri = uri;
-
-  if (Platform.OS !== 'web') {
-    finalUri = await compressVideoUri(uri);
-  }
+  const finalUri = uri;
 
   const name = safeFileName(input.fileName || `video-${Date.now()}.mp4`);
 
@@ -309,7 +293,7 @@ export async function uploadVideoToCloudinary(
   } else {
     const size = await getNativeFileSize(finalUri);
     if (size && size > 50 * 1024 * 1024) {
-      throw new Error('Video must be smaller than 50 MB after compression.');
+      throw new Error('Video must be smaller than 50 MB before upload.');
     }
     formData.append('file', {
       uri: finalUri,

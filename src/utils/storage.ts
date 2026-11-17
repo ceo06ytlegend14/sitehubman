@@ -1,23 +1,13 @@
 /**
- * storage.ts — MMKV-backed drop-in replacement for AsyncStorage.
+ * storage.ts — launch-safe storage adapter.
  *
- * MMKV is ~30× faster than AsyncStorage (synchronous, C++ core).
- * This module exposes the same async API shape so all callers need
- * zero changes. Internally uses synchronous MMKV reads.
+ * It keeps a small in-memory mirror for synchronous reads and persists through
+ * Expo-compatible AsyncStorage. Avoiding a JSI storage dependency keeps the
+ * native launch path resilient across TestFlight builds.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-let mmkvInstance: any = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { MMKV } = require('react-native-mmkv');
-  mmkvInstance = new MMKV({ id: 'avio-main-store' });
-} catch (e) {
-  // Graceful fallback if native JSI MMKV is unavailable
-  mmkvInstance = null;
-}
-
-export const mmkv = mmkvInstance;
+export const mmkv = null;
 
 const memoryStore = new Map<string, string>();
 
@@ -25,9 +15,6 @@ const memoryStore = new Map<string, string>();
 export const FastStorage = {
   getItem: async (key: string): Promise<string | null> => {
     try {
-      if (mmkvInstance) {
-        return mmkvInstance.getString(key) ?? null;
-      }
       const memVal = memoryStore.get(key);
       if (memVal !== undefined) return memVal;
       const stored = await AsyncStorage.getItem(key);
@@ -41,9 +28,6 @@ export const FastStorage = {
   setItem: async (key: string, value: string): Promise<void> => {
     try {
       memoryStore.set(key, value);
-      if (mmkvInstance) {
-        mmkvInstance.set(key, value);
-      }
       await AsyncStorage.setItem(key, value);
     } catch {}
   },
@@ -51,9 +35,6 @@ export const FastStorage = {
   removeItem: async (key: string): Promise<void> => {
     try {
       memoryStore.delete(key);
-      if (mmkvInstance) {
-        mmkvInstance.delete(key);
-      }
       await AsyncStorage.removeItem(key);
     } catch {}
   },
@@ -61,9 +42,6 @@ export const FastStorage = {
   /** Synchronous read — use where await is impractical. */
   getSync: (key: string): string | null => {
     try {
-      if (mmkvInstance) {
-        return mmkvInstance.getString(key) ?? null;
-      }
       return memoryStore.get(key) ?? null;
     } catch {
       return null;
@@ -74,9 +52,6 @@ export const FastStorage = {
   setSync: (key: string, value: string): void => {
     try {
       memoryStore.set(key, value);
-      if (mmkvInstance) {
-        mmkvInstance.set(key, value);
-      }
       AsyncStorage.setItem(key, value).catch(() => {});
     } catch {}
   },
@@ -84,9 +59,6 @@ export const FastStorage = {
   clear: async (): Promise<void> => {
     try {
       memoryStore.clear();
-      if (mmkvInstance) {
-        mmkvInstance.clearAll();
-      }
       await AsyncStorage.clear();
     } catch {}
   },

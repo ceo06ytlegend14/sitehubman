@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.sagozen.oneapp",
-      "buildNumber": "89",
+      "buildNumber": "90",
       "usesAppleSignIn": true,
       "infoPlist": {
         "NSCameraUsageDescription": "SiteHub needs camera access to scan QR codes on NFC cards.",
@@ -32,6 +32,9 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.NFC"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/snap-tap-app-icon.png",
@@ -61,6 +64,14 @@
       "expo-router",
       "expo-asset",
       "expo-font",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false
+        }
+      ],
       "expo-image-picker",
       "expo-web-browser",
       "expo-apple-authentication",
@@ -76,7 +87,6 @@
       ],
       "react-native-nfc-manager",
       "expo-updates",
-      "react-native-compressor",
       [
         "expo-notifications",
         {
@@ -98,7 +108,7 @@
     "experiments": {
       "typedRoutes": true
     },
-    "runtimeVersion": "1.0.0",
+    "runtimeVersion": "1.0.1",
     "updates": {
       "url": "https://u.expo.dev/5c9466c1-b46a-4339-8dfe-d521e69edd21"
     },

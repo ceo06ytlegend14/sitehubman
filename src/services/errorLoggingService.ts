@@ -57,19 +57,6 @@ export async function recordAppError(
       createdAt: serverTimestamp(),
     };
 
-    if (process.env.EXPO_PUBLIC_SENTRY_DSN) {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const Sentry = require('@sentry/react-native');
-        Sentry.captureException?.(errObj, {
-          tags: { platform: Platform.OS, route: payload.route || 'unknown' },
-          extra: { source: context?.extra?.source || 'app' },
-        });
-      } catch {
-        // Safe no-op if native Sentry isn't installed
-      }
-    }
-
     if (__DEV__) {
       console.log('[Telemetry Logger] Error recorded:', payload.errorMessage);
     }

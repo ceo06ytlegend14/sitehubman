@@ -148,4 +148,4 @@ if (fs.promises) {
   }
 }
 
-console.log('[patch-fs] Universal EMFILE/EBUSY retry protection active (sync, callback, promises).');
+

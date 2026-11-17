@@ -38,23 +38,9 @@ const isNoise = (args: unknown[]) => {
   return NOISE.some((p) => msg.includes(p));
 };
 
-const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
-
-if (sentryDsn) {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const Sentry = require('@sentry/react-native');
-    Sentry.init?.({
-      dsn: sentryDsn,
-      enabled: !__DEV__,
-      environment: process.env.EXPO_PUBLIC_APP_ENV || 'production',
-      tracesSampleRate: 0.1,
-      sendDefaultPii: false,
-    });
-  } catch {
-    // Sentry module unavailable or disabled
-  }
-}
+// The production binary does not include Sentry's native build integration.
+// Keep launch telemetry on the Firestore-only path until that integration is
+// intentionally restored in a matching native release.
 
 console.log = (...a: unknown[]) => {
   if (!isNoise(a)) originalLog(...a);
