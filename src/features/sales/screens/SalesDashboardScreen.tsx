@@ -230,20 +230,13 @@ export default function SalesDashboardScreen() {
           </View>
 
           <View style={styles.dealsList}>
-            {(recentOrders.length > 0
-              ? recentOrders.map((o) => ({
-                  name: o.customerName || 'Customer',
-                  item: o.productType?.replace(/_/g, ' ') || 'NFC Smart Card',
-                  amount: formatOrderTotal(o),
-                  status: (o.status || 'ACTIVE').toUpperCase(),
-                  id: o.id,
-                }))
-              : [
-                  { name: 'Marcus Sterling', item: 'Matte Black Steel · 24K Gold', amount: '$120.00', status: 'PAID', id: '1' },
-                  { name: 'Elena Rostova', item: 'Executive 316L Stainless Pass', amount: '$95.00', status: 'PRODUCTION', id: '2' },
-                  { name: 'Dr. James Thorne', item: 'Dual-Band NFC Smart Pass', amount: '$65.00', status: 'DELIVERED', id: '3' },
-                ]
-            ).map((deal, idx) => {
+            {(recentOrders.map((o) => ({
+              name: o.customerName || 'Customer',
+              item: o.productType?.replace(/_/g, ' ') || 'NFC Smart Card',
+              amount: formatOrderTotal(o),
+              status: (o.status || 'ACTIVE').toUpperCase(),
+              id: o.id,
+            }))).map((deal, idx) => {
               const initials = deal.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
               return (
                 <Pressable
@@ -270,6 +263,13 @@ export default function SalesDashboardScreen() {
                 </Pressable>
               );
             })}
+            {recentOrders.length === 0 && (
+              <View style={styles.emptyDeals}>
+                <AppText style={styles.emptyDealsText}>
+                  No deals yet — they will appear here once you create your first order.
+                </AppText>
+              </View>
+            )}
           </View>
         </View>
 
@@ -510,6 +510,16 @@ const styles = StyleSheet.create({
   },
   dealsList: {
     gap: 2,
+  },
+  emptyDeals: {
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  emptyDealsText: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.45)',
+    textAlign: 'center',
   },
   dealRow: {
     flexDirection: 'row',
