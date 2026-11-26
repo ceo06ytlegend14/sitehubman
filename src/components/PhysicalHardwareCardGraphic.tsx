@@ -47,6 +47,20 @@ export function PhysicalHardwareCardGraphic({
           highlightSheen: true,
         };
 
+      case 'wood_card':
+        return {
+          gradient: ['#A9713F', '#7C4A21', '#4A2A10'] as const,
+          borderColor: 'rgba(255, 226, 178, 0.35)',
+          chipColors: ['#E8D0A9', '#B98A4E', '#7A5326'] as const,
+          chipBorder: 'rgba(255,255,255,0.35)',
+          accentColor: '#F0C987',
+          textColor: '#FFF6E8',
+          mutedColor: 'rgba(255, 246, 232, 0.6)',
+          tagText: 'NATURAL WOOD',
+          serialText: 'BAMBOO COMPOSITE',
+          highlightSheen: true,
+        };
+
       case 'pvc_card':
         return {
           gradient: ['#323238', '#1F1F24', '#131316'] as const,

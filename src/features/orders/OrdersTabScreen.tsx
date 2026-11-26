@@ -25,6 +25,9 @@ import { IosScrollView } from '@/src/components/IosScrollView';
 import { HapticTap, Haptics } from '@/src/utils/haptics';
 import { PhysicalHardwareCardGraphic } from '@/src/components/PhysicalHardwareCardGraphic';
 import { NfcBeamModal } from '@/src/components/NfcBeamModal';
+import { useProductCatalog } from '@/src/hooks/useProductCatalog';
+import { getActiveMaterialProductOptions } from '@/src/services/productCatalogService';
+import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 
 const C = {
   canvas: '#000000',
@@ -53,17 +56,11 @@ interface Order {
   date: string;
 }
 
-const PRODUCTS: Product[] = [
-  { id: 'metal_card', name: 'Black Metal', price: '$49', tag: 'AEROSPACE GRADE' },
-  { id: 'pvc_card', name: 'Matte PVC', price: '$19', tag: 'RECYCLED POLYMER' },
-  { id: 'premium_card', name: 'Raw Brass', price: '$79', tag: 'SOLID ALLOY' },
-  { id: 'custom_card', name: 'CNC Custom', price: '$99', tag: 'BESPOKE' },
-];
-
-const MOCK_ORDERS: Order[] = [
-  { id: 'ord_1', orderNumber: '#10294', productName: 'Black Metal NFC Card', status: 'production', date: 'Today' },
-  { id: 'ord_2', orderNumber: '#10281', productName: 'Matte PVC Card', status: 'delivered', date: 'Sep 28' },
-];
+const PRODUCT_TAGS: Record<string, string> = {
+  wood_card: 'NATURAL WOOD',
+  metal_card: 'LASER-ETCHED METAL',
+  pvc_card: 'RECYCLED POLYMER',
+};
 
 const STATUS_LABELS: Record<Order['status'], string> = {
   production: 'IN PRODUCTION',
@@ -113,8 +110,28 @@ export default function OrdersTabScreen() {
   const { user } = useAuth();
   const isRealUser = Boolean(user && !user.isGuest && user.id !== 'guest');
   const { bioPage } = useBioPage(user?.id ?? '');
-  const cardholderName = bioPage?.displayName || user?.displayName || 'Alexander Wright';
-  const profileUrl = bioPage?.slug ? `https://nfcglobal.com/u/${bioPage.slug}` : `https://nfcglobal.com/u/${user?.id || 'demo'}`;
+  const cardholderName = bioPage?.displayName?.trim() || user?.displayName?.trim() || 'Your name';
+  // Beaming shares the live public profile; without a slug there is nothing to share.
+  const profileUrl = bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : '';
+  const canBeam = profileUrl.length > 0;
+  const { catalog } = useProductCatalog();
+  const liveProducts = useMemo<Product[]>(() => {
+    // Live, admin-managed catalog — prices come from Firestore products/{id}
+    // (bundled defaults only until the catalog syncs).
+    return getActiveMaterialProductOptions().map((option) => ({
+      id: option.value,
+      name: option.label,
+      price: `$${option.price.toFixed(2)}`,
+      tag: PRODUCT_TAGS[option.value] ?? 'NFC CARD',
+    }));
+  }, [catalog]);
+  const openBeamModal = () => {
+    if (!canBeam) {
+      router.push('/edit-bio' as never);
+      return;
+    }
+    setShowBeamModal(true);
+  };
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showBeamModal, setShowBeamModal] = useState(false);
@@ -134,11 +151,11 @@ export default function OrdersTabScreen() {
   const [{ data: pagedOrders, loading, hasMore, isLoadingMore }, { loadMore, refresh }] =
     useFirestorePagination<Order>(ordersQuery, { pageSize: 20 });
 
+  // Guests and signed-in users alike see only real orders — never samples.
   const orders = useMemo(() => {
-    if (isRealUser && pagedOrders.length > 0) return pagedOrders;
-    if (isRealUser && !loading) return [];
-    return MOCK_ORDERS;
-  }, [isRealUser, pagedOrders, loading]);
+    if (!isRealUser) return [];
+    return pagedOrders;
+  }, [isRealUser, pagedOrders]);
 
   const hasOrders = orders.length > 0;
 
@@ -203,26 +220,28 @@ export default function OrdersTabScreen() {
           <View style={styles.virtualTopRow}>
             <View style={styles.virtualPill}>
               <AppIcon name="wifi" size={11} color="#799A85" style={{ transform: [{ rotate: '90deg' }] }} />
-              <AppText style={styles.virtualPillText} weight="bold">VIRTUAL NFC ACTIVE</AppText>
+              <AppText style={styles.virtualPillText} weight="bold">{canBeam ? 'VIRTUAL NFC ACTIVE' : 'PROFILE REQUIRED'}</AppText>
             </View>
-            <AppText style={styles.virtualInstantBadge}>READY TO SHARE</AppText>
+            <AppText style={styles.virtualInstantBadge}>{canBeam ? 'READY TO SHARE' : 'SET UP TO SHARE'}</AppText>
           </View>
           <AppText style={styles.virtualTitle} weight="bold">
             No physical card yet? Your phone is your NFC card.
           </AppText>
           <AppText style={styles.virtualDescription}>
-            Share contactlessly right now. Beam via NFC, save your card to Apple or Google Wallet on your lock screen, or show your instant QR pass.
+            {canBeam
+              ? 'Share contactlessly right now. Beam via NFC, save your card to Apple or Google Wallet on your lock screen, or show your instant QR pass.'
+              : 'Create your public profile first — then your phone is your NFC card.'}
           </AppText>
           <View style={styles.virtualActionRow}>
             <Pressable
               style={({ pressed }) => [styles.virtualBtnPrimary, pressed && styles.btnPressed]}
               onPress={() => {
                 HapticTap.medium();
-                setShowBeamModal(true);
+                openBeamModal();
               }}
             >
               <AppIcon name="radio" size={14} color="#000000" />
-              <AppText style={styles.virtualBtnPrimaryText} weight="bold">Beam Virtual NFC</AppText>
+              <AppText style={styles.virtualBtnPrimaryText} weight="bold">{canBeam ? 'Beam Virtual NFC' : 'Set Up Profile'}</AppText>
             </Pressable>
             <Pressable
               style={({ pressed }) => [styles.virtualBtnSecondary, pressed && styles.btnPressed]}
@@ -248,7 +267,7 @@ export default function OrdersTabScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.shopScroll}
           >
-            {PRODUCTS.map((p) => (
+            {liveProducts.map((p) => (
               <ProductCard
                 key={p.id}
                 product={p}
@@ -362,21 +381,20 @@ export default function OrdersTabScreen() {
               <View style={styles.specRow}>
                 <AppText style={styles.specLabel}>MATERIAL</AppText>
                 <AppText style={styles.specValue} weight="medium">
-                  {selectedProduct?.id === 'metal_card' ? '0.8mm 304 Stainless Steel' :
+                  {selectedProduct?.id === 'metal_card' ? 'Metal alloy, laser-etched' :
                    selectedProduct?.id === 'pvc_card' ? '0.76mm Recycled Polymer' :
-                   selectedProduct?.id === 'premium_card' ? 'Solid Alloy Brushed Brass' :
-                   '3K Carbon Fiber Twill Composite'}
+                   'Bamboo composite'}
                 </AppText>
               </View>
               <View style={styles.specRow}>
                 <AppText style={styles.specLabel}>NFC CHIP</AppText>
                 <AppText style={styles.specValue} weight="medium">
-                  {selectedProduct?.id === 'custom_card' ? 'Dual NTAG424 DNA Encrypted' : 'NTAG216 High Speed ISO 14443-A'}
+                  NTAG216 · ISO 14443-A
                 </AppText>
               </View>
               <View style={styles.specRow}>
                 <AppText style={styles.specLabel}>FINISH</AppText>
-                <AppText style={styles.specValue} weight="medium">Laser-Etched Double-Sided CNC</AppText>
+                <AppText style={styles.specValue} weight="medium">Laser-etched finish</AppText>
               </View>
               <View style={styles.specRow}>
                 <AppText style={styles.specLabel}>COMPATIBILITY</AppText>
@@ -395,7 +413,11 @@ export default function OrdersTabScreen() {
                     Haptics.success();
                     setSimulatedTapActive(false);
                     setSelectedProduct(null);
-                    setShowBeamModal(true);
+                    if (canBeam) {
+                      setShowBeamModal(true);
+                    } else {
+                      router.push('/edit-bio' as never);
+                    }
                   }, 600);
                 }}
               >

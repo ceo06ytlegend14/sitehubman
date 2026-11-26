@@ -40,8 +40,6 @@ export const appRoutes = {
   nfcSuccess: '/nfc/success',
   nfcTest: '/nfc/test',
   shop: '/cards/templates',
-  shopProduct: '/shop/[productId]',
-  shopPreviewOrder: '/shop/preview-order',
   analytics: '/analytics',
   analyticsNfc: '/analytics/nfc',
   analyticsQr: '/analytics/qr',
@@ -54,8 +52,6 @@ export const appRoutes = {
   accountSubscription: '/account/subscription',
   accountAbout: '/account/about',
   accountSettings: '/account/settings',
-  ordersProduction: '/orders/production/[orderId]',
-  ordersDelivery: '/orders/delivery/[orderId]',
   customer: {
     root: '/',
     orders: '/orders/track',

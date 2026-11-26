@@ -1,6 +1,5 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import {
-  Alert,
   Clipboard,
   Pressable,
   StyleSheet,
@@ -12,19 +11,14 @@ import { AppText } from '@/src/components/AppText';
 import { AppIcon } from '@/src/components/AppIcon';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { HapticTap } from '@/src/utils/haptics';
-
-type Visibility = 'public' | 'private' | 'search';
-
-const VISIBILITY_OPTIONS: Array<{ key: Visibility; label: string; desc: string }> = [
-  { key: 'public', label: 'Public', desc: 'Anyone with your link can view your profile' },
-  { key: 'private', label: 'Private', desc: 'Only people you share with can view' },
-  { key: 'search', label: 'Search Visible', desc: 'Appear in search results' },
-];
-
-const PROFILE_URL = 'nfcglobal.com/u/username';
+import { useAuth } from '@/src/hooks/useAuth';
+import { useBioPage } from '@/src/hooks/useBioPage';
+import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 
 export default function CardSettingsScreen() {
-  const [visibility, setVisibility] = useState<Visibility>('public');
+  const { user } = useAuth();
+  const { bioPage } = useBioPage(user?.id ?? '');
+  const profileUrl = bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : '';
 
   const handleBack = useCallback(() => {
     HapticTap.light();
@@ -37,31 +31,16 @@ export default function CardSettingsScreen() {
 
   const handleCopy = useCallback(() => {
     HapticTap.medium();
-    Clipboard.setString(`https://${PROFILE_URL}`);
-  }, []);
+    if (profileUrl) {
+      Clipboard.setString(profileUrl);
+    } else {
+      router.push('/edit-bio' as never);
+    }
+  }, [profileUrl]);
 
-  const handleVisibility = useCallback((v: Visibility) => {
-    HapticTap.light();
-    setVisibility(v);
-  }, []);
-
-  const handleDelete = useCallback(() => {
+  const handleDeleteAccount = useCallback(() => {
     HapticTap.medium();
-    Alert.alert(
-      'Delete Card',
-      'This action is permanent and cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            HapticTap.medium();
-            router.replace('/(tabs)' as never);
-          },
-        },
-      ]
-    );
+    router.push('/account/delete-account' as never);
   }, []);
 
   return (
@@ -79,45 +58,17 @@ export default function CardSettingsScreen() {
         <View style={styles.section}>
           <AppText style={styles.sectionTitle}>Profile URL</AppText>
           <View style={styles.urlCard}>
-            <AppText style={styles.urlText}>{PROFILE_URL}</AppText>
+            <AppText style={styles.urlText}>
+              {profileUrl || 'Create your profile to get your link'}
+            </AppText>
             <Pressable
               onPress={handleCopy}
               style={({ pressed }) => [styles.copyBtn, pressed && styles.copyBtnPressed]}
               hitSlop={8}
             >
-              <AppIcon name="Copy" size={16} color="#2596BE" />
-              <AppText style={styles.copyBtnText}>Copy</AppText>
+              <AppIcon name={profileUrl ? 'Copy' : 'Edit2'} size={16} color="#2596BE" />
+              <AppText style={styles.copyBtnText}>{profileUrl ? 'Copy' : 'Set up'}</AppText>
             </Pressable>
-          </View>
-        </View>
-
-        {/* Visibility */}
-        <View style={styles.section}>
-          <AppText style={styles.sectionTitle}>Visibility</AppText>
-          <View style={styles.groupedList}>
-            {VISIBILITY_OPTIONS.map((option, index) => (
-              <Pressable
-                key={option.key}
-                onPress={() => handleVisibility(option.key)}
-                style={[
-                  styles.visibilityRow,
-                  index < VISIBILITY_OPTIONS.length - 1 && styles.visibilityRowBorder,
-                ]}
-              >
-                <View style={styles.visibilityInfo}>
-                  <AppText style={styles.visibilityLabel}>{option.label}</AppText>
-                  <AppText style={styles.visibilityDesc}>{option.desc}</AppText>
-                </View>
-                <View
-                  style={[
-                    styles.radio,
-                    visibility === option.key && styles.radioSelected,
-                  ]}
-                >
-                  {visibility === option.key && <View style={styles.radioDot} />}
-                </View>
-              </Pressable>
-            ))}
           </View>
         </View>
 
@@ -125,11 +76,11 @@ export default function CardSettingsScreen() {
         <View style={styles.section}>
           <AppText style={styles.sectionTitle}>Danger</AppText>
           <Pressable
-            onPress={handleDelete}
+            onPress={handleDeleteAccount}
             style={({ pressed }) => [styles.dangerRow, pressed && styles.dangerRowPressed]}
           >
             <AppIcon name="Trash2" size={20} color="#FF453A" />
-            <AppText style={styles.dangerLabel}>Delete Card</AppText>
+            <AppText style={styles.dangerLabel}>Delete Account…</AppText>
             <AppIcon name="ChevronRight" size={18} color="#FF453A" />
           </Pressable>
         </View>
@@ -219,49 +170,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#242424',
     borderRadius: 14,
     overflow: 'hidden',
-  },
-  visibilityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    gap: 12,
-  },
-  visibilityRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
-  },
-  visibilityInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  visibilityLabel: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#FFFFFF',
-  },
-  visibilityDesc: {
-    fontSize: 12,
-    color: '#9A9AA0',
-    lineHeight: 16,
-  },
-  radio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioSelected: {
-    borderColor: '#2596BE',
-  },
-  radioDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#2596BE',
   },
   dangerRow: {
     flexDirection: 'row',

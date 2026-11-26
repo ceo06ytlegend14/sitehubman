@@ -84,7 +84,16 @@ export default function CartScreen() {
 
   const handleCheckout = useCallback(() => {
     HapticTap.confidentClick();
-    router.push('/payments/checkout/new' as any);
+    // There is no bag-checkout route (only per-card checkouts exist).
+    // Send the user to the real ordering flow instead of a dead path.
+    Alert.alert(
+      'Checkout',
+      'Checkout from the bag is not available yet. You can order hardware from the Orders tab.',
+      [
+        { text: 'Stay', style: 'cancel' },
+        { text: 'Go to Orders', onPress: () => router.push('/(tabs)/orders' as any) },
+      ]
+    );
   }, []);
 
   return (
