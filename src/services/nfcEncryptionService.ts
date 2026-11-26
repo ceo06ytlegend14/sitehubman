@@ -29,8 +29,15 @@ interface EncryptedPayload {
  */
 async function getEncryptionSecret(): Promise<string> {
   // TODO: Replace with backend API call in production
-  // For now, use app-level secret (upgrade to per-card secrets in Phase 2)
-  const baseSecret = process.env.EXPO_PUBLIC_NFC_SECRET || 'SITEHUB_NFC_SECRET_2026';
+  // For now, use app-level secret (upgrade to per-card secrets in Phase 2).
+  // NOTE: the fallback below is only a development convenience. A client-side
+  // bundle ships to every device, so EXPO_PUBLIC_NFC_SECRET MUST be set for
+  // any real deployment — otherwise signatures provide no protection.
+  const envSecret = process.env.EXPO_PUBLIC_NFC_SECRET;
+  if (!envSecret && process.env.NODE_ENV === 'production') {
+    console.warn('[NFC] EXPO_PUBLIC_NFC_SECRET is not set — using the public development fallback secret. Do not ship like this.');
+  }
+  const baseSecret = envSecret || 'SITEHUB_NFC_SECRET_2026';
   
   // Add timestamp-based rotation
   const rotationPeriod = Math.floor(Date.now() / (SECRET_ROTATION_DAYS * 24 * 60 * 60 * 1000));

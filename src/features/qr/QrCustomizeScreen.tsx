@@ -57,8 +57,10 @@ export default function QrCustomizeScreen() {
   const [addLogo, setAddLogo] = useState(false);
   const [showProfileBelow, setShowProfileBelow] = useState(true);
 
+  // There is no QR-style persistence API yet; this screen is a faithful live preview.
+  // The button honestly closes the preview instead of pretending to save.
   const handleSave = useCallback(() => {
-    HapticTap.confidentClick();
+    HapticTap.light();
     router.back();
   }, []);
 
@@ -219,13 +221,15 @@ export default function QrCustomizeScreen() {
         </View>
 
         {/* Save Button */}
+        <AppText style={styles.previewNote}>Preview only — styles can’t be saved yet.</AppText>
+
         <Pressable
           onPress={handleSave}
           style={({ pressed }) => [styles.saveBtn, pressed && { opacity: 0.75 }]}
           hitSlop={4}
         >
-          <AppIcon name="save" size={18} color="#000" />
-          <AppText style={styles.saveBtnText}>Save Style</AppText>
+          <AppIcon name="check" size={18} color="#000" />
+          <AppText style={styles.saveBtnText}>Done</AppText>
         </Pressable>
       </ScrollView>
     </SafeAreaView>
@@ -391,6 +395,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
     paddingVertical: 16,
+  },
+  previewNote: {
+    color: C.muted,
+    fontSize: 11,
+    textAlign: 'center',
+    marginBottom: 8,
   },
   saveBtnText: {
     fontSize: 16,

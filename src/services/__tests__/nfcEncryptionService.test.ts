@@ -1,132 +1,103 @@
 /**
  * Unit Tests - NFC Encryption Service
- * Coverage: HMAC signing, clone detection, URL generation
+ * Covers: signed URL generation, verification, tamper detection, UID hashing.
+ * Note: requires jest + a test environment with expo-crypto available.
  */
 
-import { encryptNfcUrl, verifyNfcSignature, generateNfcSecret } from '../nfcEncryptionService';
+import {
+  encryptNfcUrl,
+  verifyNfcUrl,
+  generateNfcUidHash,
+  detectSuspiciousTapPattern,
+} from '../nfcEncryptionService';
+import { PUBLIC_PROFILE_HOST } from '@/src/constants/publicProfile';
+
+function decodePayload(url: string) {
+  const s = new URL(url).searchParams.get('s');
+  expect(s).toBeTruthy();
+  return JSON.parse(atob(s as string));
+}
 
 describe('NFC Encryption Service', () => {
   const mockCardId = 'card_test_123';
-  const mockUid = 'NFC_UID_ABC123';
-  
+
   describe('encryptNfcUrl', () => {
-    it('should generate signed URL with valid structure', async () => {
+    it('generates a signed URL on the public profile host', async () => {
       const url = await encryptNfcUrl(mockCardId);
-      
-      expect(url).toContain('https://nfcglobal.com/v/');
-      expect(url).toContain('sig=');
-      expect(url).toContain('exp=');
+      const base = (process.env.EXPO_PUBLIC_APP_URL || PUBLIC_PROFILE_HOST).replace(/\/+$/, '');
+      expect(url.startsWith(`${base}/c/${mockCardId}?s=`)).toBe(true);
     });
-    
-    it('should include card ID in URL path', async () => {
-      const url = await encryptNfcUrl(mockCardId);
-      
-      expect(url).toContain(mockCardId);
+
+    it('embeds a payload with cardId, signature, timestamp, expiresAt', async () => {
+      const payload = decodePayload(await encryptNfcUrl(mockCardId));
+      expect(payload.cardId).toBe(mockCardId);
+      expect(typeof payload.signature).toBe('string');
+      expect(payload.signature.length).toBeGreaterThan(0);
+      expect(payload.expiresAt).toBeGreaterThan(Date.now());
+      expect(payload.version).toBe('v1');
     });
-    
-    it('should generate different signatures for different cards', async () => {
-      const url1 = await encryptNfcUrl('card_1');
-      const url2 = await encryptNfcUrl('card_2');
-      
-      const sig1 = new URL(url1).searchParams.get('sig');
-      const sig2 = new URL(url2).searchParams.get('sig');
-      
-      expect(sig1).not.toBe(sig2);
+
+    it('generates different signatures for different cards', async () => {
+      const p1 = decodePayload(await encryptNfcUrl('card_1'));
+      const p2 = decodePayload(await encryptNfcUrl('card_2'));
+      expect(p1.signature).not.toBe(p2.signature);
     });
-    
-    it('should set expiry 365 days in future', async () => {
-      const url = await encryptNfcUrl(mockCardId);
-      const expiry = parseInt(new URL(url).searchParams.get('exp') || '0');
-      
-      const now = Math.floor(Date.now() / 1000);
-      const oneYear = 365 * 24 * 60 * 60;
-      
-      expect(expiry).toBeGreaterThan(now);
-      expect(expiry).toBeLessThan(now + oneYear + 3600); // +1 hour tolerance
+
+    it('sets expiry about 365 days in the future', async () => {
+      const payload = decodePayload(await encryptNfcUrl(mockCardId));
+      const oneYearMs = 365 * 24 * 60 * 60 * 1000;
+      expect(payload.expiresAt).toBeLessThanOrEqual(Date.now() + oneYearMs + 5000);
+      expect(payload.expiresAt).toBeGreaterThan(Date.now() + oneYearMs - 60000);
     });
   });
-  
-  describe('verifyNfcSignature', () => {
-    it('should verify valid signature', async () => {
+
+  describe('verifyNfcUrl', () => {
+    it('accepts a URL produced by encryptNfcUrl', async () => {
       const url = await encryptNfcUrl(mockCardId);
-      const urlObj = new URL(url);
-      const signature = urlObj.searchParams.get('sig') || '';
-      const expiry = urlObj.searchParams.get('exp') || '';
-      
-      const isValid = await verifyNfcSignature(mockCardId, signature, expiry);
-      
-      expect(isValid).toBe(true);
+      await expect(verifyNfcUrl(url)).resolves.toBe(mockCardId);
     });
-    
-    it('should reject tampered card ID', async () => {
+
+    it('rejects a tampered card id', async () => {
       const url = await encryptNfcUrl(mockCardId);
-      const urlObj = new URL(url);
-      const signature = urlObj.searchParams.get('sig') || '';
-      const expiry = urlObj.searchParams.get('exp') || '';
-      
-      const isValid = await verifyNfcSignature('card_tampered', signature, expiry);
-      
-      expect(isValid).toBe(false);
+      const tampered = url.replace(mockCardId, 'card_tampered');
+      await expect(verifyNfcUrl(tampered)).resolves.toBeNull();
     });
-    
-    it('should reject expired URLs', async () => {
-      const url = await encryptNfcUrl(mockCardId);
-      const urlObj = new URL(url);
-      const signature = urlObj.searchParams.get('sig') || '';
-      
-      // Set expiry to past
-      const pastExpiry = Math.floor(Date.now() / 1000) - 3600;
-      
-      const isValid = await verifyNfcSignature(mockCardId, signature, pastExpiry.toString());
-      
-      expect(isValid).toBe(false);
-    });
-    
-    it('should reject invalid signature format', async () => {
-      const isValid = await verifyNfcSignature(mockCardId, 'invalid_signature', '9999999999');
-      
-      expect(isValid).toBe(false);
+
+    it('rejects a forged payload', async () => {
+      const payload = decodePayload(await encryptNfcUrl(mockCardId));
+      payload.signature = 'deadbeef'.repeat(8);
+      const forgedUrl = `${PUBLIC_PROFILE_HOST}/c/${mockCardId}?s=${btoa(JSON.stringify(payload))}`;
+      await expect(verifyNfcUrl(forgedUrl)).resolves.toBeNull();
     });
   });
-  
-  describe('generateNfcSecret', () => {
-    it('should generate 64-character hex string', () => {
-      const secret = generateNfcSecret();
-      
-      expect(secret).toHaveLength(64);
-      expect(secret).toMatch(/^[a-f0-9]{64}$/);
+
+  describe('generateNfcUidHash', () => {
+    it('is deterministic for the same uid', async () => {
+      const a = await generateNfcUidHash('NFC_UID_SAME');
+      const b = await generateNfcUidHash('NFC_UID_SAME');
+      expect(a).toBe(b);
     });
-    
-    it('should generate unique secrets', () => {
-      const secret1 = generateNfcSecret();
-      const secret2 = generateNfcSecret();
-      
-      expect(secret1).not.toBe(secret2);
+
+    it('differs for different uids', async () => {
+      const a = await generateNfcUidHash('NFC_UID_ONE');
+      const b = await generateNfcUidHash('NFC_UID_TWO');
+      expect(a).not.toBe(b);
     });
   });
-  
-  describe('Clone Detection', () => {
-    it('should detect clone attempt with same UID', async () => {
-      // Simulate: Tag A writes UID, Tag B tries to reuse same UID
-      // This would be caught by comparing UID hash with registered hash
-      
-      const uidHash1 = await hashUid(mockUid);
-      const uidHash2 = await hashUid(mockUid);
-      
-      expect(uidHash1).toBe(uidHash2); // Same UID = same hash = clone detected
+
+  describe('detectSuspiciousTapPattern', () => {
+    it('flags more taps than the hourly threshold', () => {
+      const now = Date.now();
+      const taps = Array.from({ length: 101 }, (_, i) => ({ timestamp: now - i * 1000 }));
+      const result = detectSuspiciousTapPattern(taps);
+      expect(result.isSuspicious).toBe(true);
     });
-    
-    it('should allow legitimate tag with unique UID', async () => {
-      const uidHash1 = await hashUid('NFC_UID_LEGITIMATE');
-      const uidHash2 = await hashUid('NFC_UID_DIFFERENT');
-      
-      expect(uidHash1).not.toBe(uidHash2); // Different UIDs = unique tags
+
+    it('allows normal activity', () => {
+      const now = Date.now();
+      const taps = Array.from({ length: 5 }, (_, i) => ({ timestamp: now - i * 60000 }));
+      const result = detectSuspiciousTapPattern(taps);
+      expect(result.isSuspicious).toBe(false);
     });
   });
 });
-
-// Helper function for clone detection tests
-async function hashUid(uid: string): Promise<string> {
-  const crypto = require('crypto');
-  return crypto.createHash('sha256').update(uid).digest('hex');
-}
