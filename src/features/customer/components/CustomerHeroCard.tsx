@@ -7,7 +7,6 @@ import { appRoutes } from '@/src/constants/navigation';
 import { HapticTap } from '@/src/utils/haptics';
 import { MotionScale } from '@/src/utils/motion';
 import { usePreferences } from '@/src/hooks/usePreferences';
-import { SEED_CARDS } from '@/src/data/seedCards';
 import { useBioPage } from '@/src/hooks/useBioPage';
 import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
@@ -122,27 +121,23 @@ export function CustomerHeroCard({ user }: any) {
 
   const activeCardId = preferences.primaryCardId || 'card-current';
 
-  const activeCard = useMemo(() => {
-    if (activeCardId === 'card-current') {
-      return {
-        fullName: cardName,
-        title: cardTitle,
-        phone: cardPhone,
-        email: cardEmail,
-        website: profileUrl || '',
-        profileUrl: profileUrl || `sitehubman.com/profile/${user?.id || 'demo'}`,
-        backgroundImageUri: photoUrl,
-        gradientIndex: cloudCard?.gradientIndex ?? 0,
-      };
-    }
-    return SEED_CARDS.find(c => c.id === activeCardId) || SEED_CARDS[0];
-  }, [activeCardId, cardName, cardTitle, cardPhone, cardEmail, profileUrl, photoUrl, user?.id]);
+  const activeCard = useMemo(() => ({
+    // One real card — the user's own. Never fictional extras.
+    fullName: cardName,
+    title: cardTitle,
+    phone: cardPhone,
+    email: cardEmail,
+    website: profileUrl || '',
+    profileUrl: profileUrl || '',
+    backgroundImageUri: photoUrl,
+    gradientIndex: cloudCard?.gradientIndex ?? 0,
+  }), [cardName, cardTitle, cardPhone, cardEmail, profileUrl, photoUrl, cloudCard, user?.id, activeCardId]);
 
   const name = activeCard?.fullName || cardName;
   const title = activeCard?.title || cardTitle;
 
   const avatarUrl = photoUrl || user?.photoURL || user?.telegramPhotoUrl || '';
-  const coverUrl = (activeCard as any)?.backgroundImageUri || 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&q=80&w=1000';
+  const coverUrl = (activeCard as any)?.backgroundImageUri || undefined; // gradient fallback when no photo
 
   const initial = (name.trim() || 'C')[0].toUpperCase();
 

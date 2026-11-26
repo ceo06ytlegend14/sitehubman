@@ -1,16 +1,17 @@
 User-agent: *
 Allow: /
 
-# Public pages
+# Public, indexable pages
 Allow: /u/
 Allow: /public/
 Allow: /c/
 Allow: /p/
 Allow: /privacy-policy
 Allow: /terms-of-service
-Allow: /nfc-demo
+Allow: /guest-choose-card
+Allow: /guest-design
 
-# Block private/admin/internal routes
+# Block private/admin/auth/internal routes
 Disallow: /admin
 Disallow: /sales
 Disallow: /account
@@ -28,7 +29,6 @@ Disallow: /register
 Disallow: /guest-checkout
 Disallow: /guest-post-login-choice
 Disallow: /guest-track-order
-Disallow: /icon-preview
 Disallow: /qr-generator
 Disallow: /cards/preview
 Disallow: /card-preview
@@ -36,10 +36,7 @@ Disallow: /studio
 Disallow: /edit-bio
 Disallow: /activate-card
 Disallow: /scan
-Disallow: /nfc-demo
 Disallow: /language-picker
 Disallow: /theme-picker
-Disallow: /preview
-Disallow: /promotional-preview
 
-Sitemap: https://sitehubman.com/sitemap.xml
+Sitemap: https://sitehub-8dd56.web.app/sitemap.xml

@@ -554,7 +554,7 @@ const [user, orders, cards] = await Promise.all([
 ```bash
 # .env
 EXPO_PUBLIC_NFC_SECRET=your-secret-key
-EXPO_PUBLIC_APP_URL=https://sitehub.app
+EXPO_PUBLIC_APP_URL=https://sitehub-8dd56.web.app
 
 # Firebase Functions Secrets
 PAYMENT_SANDBOX_SECRET=xxx

@@ -18,9 +18,7 @@ import { PageHeader } from '@/src/components/PageHeader';
 import type { TapMoment } from '@/src/components/TapMomentCard';
 import { ConfettiBurst } from '@/src/components/ConfettiBurst';
 import { FollowUpBanner } from '@/src/components/FollowUpBanner';
-import { LiveTapSuccess } from '@/src/components/LiveTapSuccess';
 import { MomentDetailSheet } from '@/src/components/MomentDetailSheet';
-import { SEED_MOMENTS, SEED_MOMENT_LABELS, getSeedSlugUrl } from '@/src/data/seedMoments';
 import { useCustomerConnections } from '@/src/hooks/useCustomerConnections';
 import { useConnectionIntelligence } from '@/src/hooks/useConnectionIntelligence';
 import { getLeadsForUser } from '@/src/services/leadService';
@@ -29,13 +27,25 @@ import { ALL_TAGS, type ConnectionTagId } from '@/src/services/connectionsIntell
 import { HapticTap } from '@/src/utils/haptics';
 import { pageThemes } from '@/src/constants/pageThemes';
 
+function formatRelativeTime(occurredAt?: Date | number): string {
+  if (!occurredAt) return '';
+  const ts = occurredAt instanceof Date ? occurredAt.getTime() : occurredAt;
+  const diffMs = Date.now() - ts;
+  if (!Number.isFinite(diffMs) || diffMs < 0) return '';
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  return `${weeks}w ago`;
+}
+
 const PAGE_THEME = pageThemes.leads;
 const BRAND = PAGE_THEME.accent;
 const MUTED = PAGE_THEME.muted;
-
-function buildSlugUrl(slug: string) {
-  return `https://sitehub.app/${slug}`;
-}
 
 function ConnectionRowSkeleton({ isDark }: { isDark: boolean }) {
   const bg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
@@ -60,7 +70,7 @@ function ConnectionRowSkeleton({ isDark }: { isDark: boolean }) {
  *  3. MomentDetailSheet extended — tag picker + contact export sheet
  */
 export function ConnectionsMomentsScreen() {
-  const { data, refreshing, refresh } = useCustomerConnections(null);
+  const { refreshing, refresh } = useCustomerConnections(null);
   const { user } = useAuth();
   const isDark = true;
 
@@ -85,7 +95,6 @@ export function ConnectionsMomentsScreen() {
   }, [user?.id, refreshing]);
 
   const [celebratingFollowUp, setCelebratingFollowUp] = useState<string | null>(null);
-  const [celebratingTap, setCelebratingTap] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(true);
   const [activeTagFilter, setActiveTagFilter] = useState<ConnectionTagId | null>(null);
@@ -94,22 +103,7 @@ export function ConnectionsMomentsScreen() {
 
   const { momentId } = useLocalSearchParams<{ momentId?: string }>();
 
-  const profile = data?.profiles?.[0];
-  const publicUrl = profile?.slug ? buildSlugUrl(profile.slug) : null;
-  const profileHost = useMemo(() => {
-    if (publicUrl) {
-      try {
-        const u = new URL(publicUrl);
-        return `${u.protocol}//${u.host}`;
-      } catch {
-        return 'https://sitehub.app';
-      }
-    }
-    return 'https://sitehub.app';
-  }, [publicUrl]);
-
-  // All seed moments (merged with real leads)
-  const allMoments = useMemo(() => [...realLeads, ...SEED_MOMENTS], [realLeads]);
+  const allMoments = useMemo(() => realLeads, [realLeads]);
 
   // ── Phase 2: intelligence hook ────────────────────────────────────────────
   const {
@@ -140,22 +134,21 @@ export function ConnectionsMomentsScreen() {
   // ── Deep-link: open moment from notification ──────────────────────────────
   useEffect(() => {
     if (momentId) {
-      const match = SEED_MOMENTS.find((m) => m.id === momentId);
+      const match = realLeads.find((m) => m.id === momentId);
       if (match) {
-        const slugUrl = getSeedSlugUrl(match.id, profileHost);
+        // Real leads don't carry a public slug — the detail sheet gets no link URL.
         setActiveMoment(match);
-        setActiveSlugUrl(slugUrl);
+        setActiveSlugUrl(null);
       }
     }
-  }, [momentId, profileHost]);
+  }, [momentId, realLeads]);
 
   // ── Handlers ─────────────────────────────────────────────────────────────
   const handleMomentPress = useCallback((moment: TapMoment) => {
     HapticTap.medium();
-    const slugUrl = getSeedSlugUrl(moment.id, profileHost);
     setActiveMoment(moment);
-    setActiveSlugUrl(slugUrl);
-  }, [profileHost]);
+    setActiveSlugUrl(null); // real leads have no public slug to link to
+  }, []);
 
   const handleFollowUp = useCallback((moment: TapMoment) => {
     setCelebratingFollowUp(moment.id);
@@ -165,12 +158,11 @@ export function ConnectionsMomentsScreen() {
   const handleNudgeAction = useCallback((nudgeMomentId: string) => {
     const match = allMoments.find((m) => m.id === nudgeMomentId);
     if (match) {
-      const slugUrl = getSeedSlugUrl(match.id, profileHost);
       setActiveMoment(match);
-      setActiveSlugUrl(slugUrl);
+      setActiveSlugUrl(null);
     }
     void dismissNudge(nudgeMomentId);
-  }, [allMoments, profileHost, dismissNudge]);
+  }, [allMoments, dismissNudge]);
 
   const handleToggleTagFilter = useCallback((tagId: ConnectionTagId) => {
     HapticTap.light();
@@ -201,7 +193,7 @@ export function ConnectionsMomentsScreen() {
 
   const renderConversation: ListRenderItem<TapMoment> = useCallback(
     ({ item }) => {
-      const timeLabel = SEED_MOMENT_LABELS[item.id] ?? '';
+      const timeLabel = formatRelativeTime(item.occurredAt);
       const momentTags = tagsMap[item.id] ?? [];
       return (
         <Pressable
@@ -386,11 +378,15 @@ export function ConnectionsMomentsScreen() {
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <AppText style={styles.emptyIcon}>🔍</AppText>
-            <AppText style={[styles.emptyTitle, { color: MUTED }]}>No connections found</AppText>
+            <AppText style={[styles.emptyTitle, { color: MUTED }]}>
+              {activeTagFilter || searchQuery.trim() ? 'No connections found' : 'No connections yet'}
+            </AppText>
             <AppText style={[styles.emptySubtitle, { color: MUTED }]}>
               {activeTagFilter
                 ? 'No one tagged yet. Tap a connection and add a tag first.'
-                : 'Try a different search term.'}
+                : searchQuery.trim()
+                ? 'Try a different search term.'
+                : 'Share your card or QR code — the people who tap or scan will appear here.'}
             </AppText>
           </View>
         }
@@ -401,16 +397,6 @@ export function ConnectionsMomentsScreen() {
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
           <ConfettiBurst count={18} origin={{ x: 0.5, y: 0.55 }} durationMs={1100} />
         </View>
-      ) : null}
-
-      {/* Live tap success overlay */}
-      {celebratingTap ? (
-        <LiveTapSuccess
-          visible={celebratingTap}
-          title="Card shared"
-          subtitle={publicUrl ?? 'Your identity is one tap away.'}
-          onDismiss={() => setCelebratingTap(false)}
-        />
       ) : null}
 
       {/* Moment detail bottom sheet */}

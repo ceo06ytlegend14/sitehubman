@@ -30,9 +30,8 @@ interface LinkRow {
 }
 
 const LINKS: LinkRow[] = [
-  { label: 'Terms of Service', url: 'https://sitehubman.com/terms' },
-  { label: 'Privacy Policy', url: 'https://sitehubman.com/privacy' },
-  { label: 'Open Source Licenses', url: 'https://sitehubman.com/licenses' },
+  { label: 'Terms of Service', route: '/terms-of-service' },
+  { label: 'Privacy Policy', route: '/privacy-policy' },
 ];
 
 export default function AboutScreen() {

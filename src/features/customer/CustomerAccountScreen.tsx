@@ -21,6 +21,7 @@ import { useCustomerOrders } from '@/src/hooks/useCustomerOrders';
 import { getCustomerInsights, type CustomerInsights } from '@/src/services/customerInsightsService';
 import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
 import { useBioPage } from '@/src/hooks/useBioPage';
+import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import type { Order } from '@/src/types/models';
 import { FAB } from '@/src/components/FAB';
 import { QuickActionModal } from '@/src/components/QuickActionModal';
@@ -155,14 +156,19 @@ export function CustomerAccountScreen() {
   const heroTitle = cardProfile?.role?.trim() || '';
 
   const handleShare = useCallback(async () => {
+    // Share the real public profile URL; without a slug there is nothing real to send.
+    if (!bioPage?.slug) {
+      Alert.alert('Profile not ready', 'Create and publish your profile first — then you can share your link.');
+      return;
+    }
     try {
       await Share.share({
-        message: `Check out my digital business card: https://sitehubman.com/profile/${user?.id}`,
+        message: `Check out my digital business card: ${buildSlugProfileUrl(bioPage.slug)}`,
       });
     } catch (e: any) {
       Alert.alert('Share failed', e.message);
     }
-  }, [user]);
+  }, [bioPage?.slug]);
 
   return (
     <View style={styles.root}>

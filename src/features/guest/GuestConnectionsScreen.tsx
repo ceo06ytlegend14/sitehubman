@@ -32,7 +32,6 @@ import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { useDebounce } from '@/src/hooks/useDebounce';
 import type { TapMoment } from '@/src/components/TapMomentCard';
-import { SEED_MOMENTS } from '@/src/data/seedMoments';
 import { HapticTap } from '@/src/utils/haptics';
 import { usePreferences } from '@/src/hooks/usePreferences';
 
@@ -140,7 +139,8 @@ export function GuestConnectionsScreen() {
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'vip' | 'recent'>('all');
 
-  const [moments, setMoments] = useState(SEED_MOMENTS);
+  // Guests start with no leads — the empty state below is the honest view.
+  const [moments, setMoments] = useState<TapMoment[]>([]);
   const debouncedSearch = useDebounce(query, 300);
 
   const filteredMoments = useMemo(() => {

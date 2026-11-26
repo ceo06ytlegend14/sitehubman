@@ -11,6 +11,9 @@ import { router } from 'expo-router';
 import AppText from '@/src/components/AppText';
 import AppIcon from '@/src/components/AppIcon';
 import { HapticTap } from '@/src/utils/haptics';
+import { useAuth } from '@/src/hooks/useAuth';
+import { useBioPage } from '@/src/hooks/useBioPage';
+import { buildSlugProfileUrl, PUBLIC_PROFILE_HOST } from '@/src/constants/publicProfile';
 
 // QrCode SVG is optional — gracefully fallback if not installed
 let QRCode: React.ComponentType<{
@@ -42,6 +45,12 @@ const FG_COLORS = ['#F5F5F7', '#2596BE', '#30D158', '#FFD60A', '#BF5AF2'];
 const BG_COLORS = ['#000000', '#111114', '#0A1628', '#0D2015', '#1A0A28'];
 
 export default function QrCustomizeScreen() {
+  const { user } = useAuth();
+  const { bioPage } = useBioPage(user?.id ?? '');
+  const displayName = bioPage?.displayName?.trim() || user?.displayName?.trim() || 'Your Name';
+  const tagline = bioPage?.tagline?.trim() || '';
+  // Encode the real profile when one exists; otherwise the canonical host root.
+  const qrValue = bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : PUBLIC_PROFILE_HOST;
   const [qrStyle, setQrStyle] = useState<QrStyle>('squares');
   const [fgColor, setFgColor] = useState(FG_COLORS[0]);
   const [bgColor, setBgColor] = useState(BG_COLORS[0]);
@@ -76,7 +85,7 @@ export default function QrCustomizeScreen() {
         <View style={[styles.previewCard, { backgroundColor: bgColor }]}>
           {QRCode ? (
             <QRCode
-              value="https://sitehubman.com/u/demo"
+              value={qrValue}
               size={180}
               color={fgColor}
               backgroundColor={bgColor}
@@ -93,10 +102,10 @@ export default function QrCustomizeScreen() {
             <View style={styles.profileBelow}>
               <View style={styles.profileBelowAvatar} />
               <AppText style={[styles.profileBelowName, { color: fgColor }]}>
-                Alex Johnson
+                {displayName}
               </AppText>
               <AppText style={[styles.profileBelowTitle, { color: fgColor, opacity: 0.6 }]}>
-                Software Engineer
+                {tagline}
               </AppText>
             </View>
           )}

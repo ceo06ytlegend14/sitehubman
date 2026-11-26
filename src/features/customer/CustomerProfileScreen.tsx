@@ -43,7 +43,6 @@ import { usePreferences } from '@/src/hooks/usePreferences';
 import { uploadProfilePhoto } from '@/src/services/profilePhotoService';
 import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
 import { updateUserActiveProfile } from '@/src/services/firestoreService';
-import { SEED_CARDS } from '@/src/data/seedCards';
 import { HapticTap } from '@/src/utils/haptics';
 import type { CarouselCard } from '@/src/components/CardStackCarousel';
 
@@ -173,9 +172,9 @@ export function CustomerProfileScreen() {
       .finally(() => setIsLoading(false));
   }, [user?.id]);
 
-  const displayName = editName || bioPage?.displayName || user?.displayName || 'Digital Creator';
-  const tagline = editTitle || bioPage?.tagline || 'Building the future of digital business networking.';
-  const slug = editSlug || bioPage?.slug || 'creator';
+  const displayName = editName || bioPage?.displayName || user?.displayName || 'Your name';
+  const tagline = editTitle || bioPage?.tagline || '';
+  const slug = editSlug || bioPage?.slug || '';
   const photoUrl = bioPage?.photoUrl;
   const profileUrl = slug ? buildSlugProfileUrl(slug) : undefined;
   const initial = (displayName[0] || 'C').toUpperCase();
@@ -187,7 +186,7 @@ export function CustomerProfileScreen() {
       id: 'card-current',
       role: 'personal',
       fullName: displayName,
-      title: tagline || 'Digital Creator',
+      title: tagline || 'Your headline',
       phone: editPhone || bioPage?.whatsapp || user?.phone || '',
       email: editEmail || bioPage?.email || user?.email || '',
       website: profileUrl || '',
@@ -196,7 +195,8 @@ export function CustomerProfileScreen() {
       gradientIndex: cloudCard?.design?.gradientIndex ?? 0,
       isPrimary: 'card-current' === primaryId,
     };
-    return [main, ...SEED_CARDS.filter(c => c.id !== 'card-primary').map(c => ({ ...c, isPrimary: c.id === primaryId }))];
+    // Only the card that actually exists — never fictional extras.
+    return [main];
   }, [preferences.primaryCardId, displayName, tagline, editPhone, editEmail, profileUrl, photoUrl, cloudCard, bioPage, user]);
 
   const handleCardPress = useCallback(async (card: CarouselCard) => {

@@ -7,7 +7,6 @@ import {
   Share,
   StyleSheet,
   View,
-  Image,
 } from 'react-native';
 import { useLiveTapStream } from '@/src/hooks/useLiveTapStream';
 import { useToast } from '@/src/providers/ToastProvider';
@@ -25,6 +24,9 @@ import {
 } from '@/src/services/leadWorkflowService';
 import { ConnectIntentModal } from '@/src/components/ConnectIntentModal';
 import { CardSuccessShareModal } from '@/src/features/guest/CardSuccessShareModal';
+import { GeneratedProfileIcon } from '@/src/components/GeneratedProfileIcon';
+import { useBioPage } from '@/src/hooks/useBioPage';
+import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import { EmptyCardState } from '@/src/components/EmptyCardState';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -39,9 +41,19 @@ export function SiteHubHomeScreen() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const ownerId = user?.id ?? 'demo_owner';
-  const ownerName = user?.displayName || 'Alexander Wright';
-  const companyTitle = (user as any)?.jobTitle || 'Managing Partner · Apex Ventures';
+  const ownerId = user?.id ?? '';
+  const ownerName = user?.displayName?.trim() || 'Your name';
+  const companyTitle = (user as any)?.jobTitle || '';
+  const { bioPage } = useBioPage(user?.id ?? '');
+  const shareUrl = bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : '';
+  const openShareModal = useCallback(() => {
+    HapticTap.light();
+    if (!shareUrl) {
+      router.push('/edit-bio' as never);
+      return;
+    }
+    setShowShareModal(true);
+  }, [shareUrl]);
 
   // ── Phase 1: Real-Time NFC Tap Stream ──────────────────────────────────────
   const { tapCount: liveTapCount } = useLiveTapStream(
@@ -71,39 +83,9 @@ export function SiteHubHomeScreen() {
     try {
       const fetched = await fetchOwnerLeads(ownerId, 10);
       setLeads(fetched);
-    } catch {
-      setLeads([
-        {
-          id: 'lead-1',
-          ownerId,
-          name: 'Sarah Chen',
-          contactInfo: '+1 (555) 234-5678',
-          intent: 'services',
-          intentLabel: 'Services',
-          note: 'Enterprise NFC rollout for executive partners.',
-          followedUp: false,
-        },
-        {
-          id: 'lead-2',
-          ownerId,
-          name: 'Raj Patel',
-          contactInfo: 'raj@patelcapital.com',
-          intent: 'investment',
-          intentLabel: 'Investment',
-          note: 'Evaluating Series A allocation.',
-          followedUp: true,
-        },
-        {
-          id: 'lead-3',
-          ownerId,
-          name: 'Emma Liu',
-          contactInfo: 'eliu@vertexio.com',
-          intent: 'partnership',
-          intentLabel: 'Partnership',
-          note: 'Co-branded team onboarding.',
-          followedUp: false,
-        },
-      ]);
+    } catch (error) {
+      console.error('[SiteHubHome] Failed to load leads', error);
+      setLeads([]);
     } finally {
       setRefreshing(false);
     }
@@ -172,10 +154,7 @@ export function SiteHubHomeScreen() {
                 onPress={() => router.push('/(tabs)/profile' as any)}
                 hitSlop={8}
               >
-                <Image
-                  source={require('@/assets/images/avatars/avatar_founder_man.jpg')}
-                  style={styles.avatarImg}
-                />
+                <GeneratedProfileIcon name={ownerName} seed={user?.id ?? 'guest'} size={44} variant="circle" />
               </Pressable>
               <View style={styles.profileInfo}>
                 <AppText style={styles.profileName} weight="bold">
@@ -258,8 +237,7 @@ export function SiteHubHomeScreen() {
                   <Pressable
                     style={styles.primaryActionButton}
                     onPress={() => {
-                      HapticTap.light();
-                      setShowShareModal(true);
+                      openShareModal();
                     }}
                     hitSlop={8}
                   >
@@ -340,7 +318,7 @@ export function SiteHubHomeScreen() {
                 </AppText>
                 <Pressable
                   style={styles.emptyButton}
-                  onPress={() => setShowShareModal(true)}
+                  onPress={openShareModal}
                   hitSlop={8}
                 >
                   <AppText style={styles.emptyButtonText} weight="bold">
@@ -409,7 +387,7 @@ export function SiteHubHomeScreen() {
 
               <Pressable
                 style={styles.toolItem}
-                onPress={() => setShowShareModal(true)}
+                onPress={openShareModal}
                 hitSlop={8}
               >
                 <AppIcon name="QrCode" size={18} color="#0A84FF" />
@@ -468,7 +446,7 @@ export function SiteHubHomeScreen() {
       <CardSuccessShareModal
         visible={showShareModal}
         onClose={() => setShowShareModal(false)}
-        url={`https://sitehub.app/u/${user?.id ?? 'demo'}`}
+        url={shareUrl}
         name={ownerName}
       />
     </SafeAreaView>

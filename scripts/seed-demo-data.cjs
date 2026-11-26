@@ -220,7 +220,7 @@ async function seedDemoData() {
   for (let i = 0; i < ORDERS.length; i++) {
     const t = ORDERS[i];
     const code = cardCode();
-    const profileUrl = `https://sitehubman.com/c/${code}`;
+    const profileUrl = `https://sitehub-8dd56.web.app/c/${code}`;
     const assignedSalesman = i % 2 === 0 ? salesmanId : salesman2Id;
     const assignedPrinter  = i % 2 === 0 ? printerId  : printer2Id;
     const cardStatus = t.cardStatus ?? 'active';

@@ -296,7 +296,7 @@ await analytics().logEvent('payment_success', {
 ```bash
 # .env.production
 NODE_ENV=production
-EXPO_PUBLIC_API_URL=https://api.sitehub.app
+EXPO_PUBLIC_API_URL=https://sitehub-8dd56.web.app
 ```
 
 ### 2. Build Optimized Bundle

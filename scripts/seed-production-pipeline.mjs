@@ -34,6 +34,19 @@ if (process.env.FIRESTORE_EMULATOR_HOST) {
 
 assertFirebaseScriptConfig();
 
+// This script writes fictional orders into shared collections. Refuse to run
+// against a live project unless explicitly opted in — the default target is
+// the local emulator. Nothing here may look like a real customer order.
+const onEmulator = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
+const allowLive = process.env.SITEHUB_SEED_ALLOW_LIVE === '1';
+if (!onEmulator && !allowLive) {
+  console.error(
+    'Refusing to seed: set FIRESTORE_EMULATOR_HOST (recommended) or SITEHUB_SEED_ALLOW_LIVE=1 ' +
+    'to write clearly-labeled demo orders to a live project.'
+  );
+  process.exit(1);
+}
+
 const clientApp = initializeClientApp(firebaseConfig);
 const auth = getAuth(clientApp);
 const db = getFirestore(clientApp);
@@ -41,32 +54,32 @@ const db = getFirestore(clientApp);
 const SEED_DATA = [
   {
     id: 'job_exec_001',
-    orderNumber: 'ORD-EXEC-001',
-    customerName: 'Alexander Vance',
+    orderNumber: 'ORD-DEMO-001',
+    customerName: 'DEMO Customer A',
     productType: 'matte_black_metal',
     quantity: 25,
     status: 'printing',
   },
   {
     id: 'job_luxe_002',
-    orderNumber: 'ORD-LUXE-002',
-    customerName: 'Elena Rostova',
+    orderNumber: 'ORD-DEMO-002',
+    customerName: 'DEMO Customer B',
     productType: 'card_luxury',
     quantity: 10,
     status: 'pending_print',
   },
   {
     id: 'job_gold_003',
-    orderNumber: 'ORD-GOLD-003',
-    customerName: 'Marcus Sterling',
+    orderNumber: 'ORD-DEMO-003',
+    customerName: 'DEMO Customer C',
     productType: 'gold_premium',
     quantity: 5,
     status: 'printed',
   },
   {
     id: 'job_eco_004',
-    orderNumber: 'ORD-ECO-004',
-    customerName: 'Sophia Lin',
+    orderNumber: 'ORD-DEMO-004',
+    customerName: 'DEMO Customer D',
     productType: 'bamboo_pvc',
     quantity: 100,
     status: 'printing',
@@ -113,15 +126,15 @@ async function seedProductionPipeline() {
         id: job.id,
         orderNumber: job.orderNumber,
         customerName: job.customerName,
-        phone: '+855900112233',
+        phone: '+855000000000', // reserved fictional range
         productType: job.productType,
         quantity: job.quantity,
         status: job.status,
-        paymentStatus: 'paid',
-        paymentMethod: 'online',
+        paymentStatus: 'unpaid',
+        paymentMethod: 'demo',
         cardDesign: 'classic_black',
         cardStatus: 'active',
-        priority: 'urgent',
+        priority: 'normal',
         assignedSalesman: actorUid,
         createdBy: actorUid,
         updatedBy: actorUid,
