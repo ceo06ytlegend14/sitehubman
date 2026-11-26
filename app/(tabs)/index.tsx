@@ -1,6 +1,8 @@
 import { lazy, Suspense } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
+import { SeoHead } from '@/src/components/SeoHead';
+
 const HomeScreen = lazy(() =>
   import('@/src/features/guest/GuestHomeScreen').then((m) => ({ default: m.GuestHomeScreen }))
 );
@@ -12,8 +14,6 @@ function TabFallback() {
     </View>
   );
 }
-
-import { SeoHead } from '@/src/components/SeoHead';
 
 export default function HomeTabRoute() {
   return (

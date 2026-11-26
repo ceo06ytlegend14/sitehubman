@@ -14,6 +14,8 @@ import type { Payout } from '@/src/types/models';
 import { AppIcon } from '@/src/components/AppIcon';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { usePreferences } from '@/src/hooks/usePreferences';
+
 type Period = 'Today' | 'Week' | 'Month';
 
 // ─── Tokens (Light Theme Payouts Pro) ────────────────────────────────────────
@@ -45,8 +47,6 @@ function filterByPeriod(payouts: Payout[], p: Period): Payout[] {
     return d >= mo;
   });
 }
-
-import { usePreferences } from '@/src/hooks/usePreferences';
 
 export default function SalesPayoutsScreen() {
   const { user }        = useAuth();

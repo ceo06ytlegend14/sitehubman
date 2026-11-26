@@ -9,6 +9,8 @@ import { View, Pressable, StyleSheet, type ViewStyle } from 'react-native';
 
 import { production } from '@/src/design-system/production';
 
+import { Text } from 'react-native';
+
 // ═══════════════════════════════════════════════════════════════════════════
 // TYPES
 // ═══════════════════════════════════════════════════════════════════════════
@@ -186,5 +188,3 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.6)',
   },
 });
-
-import { Text } from 'react-native';

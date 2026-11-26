@@ -23,14 +23,14 @@ interface CardForm {
   website: string;
 }
 
-const FIELDS: Array<{
+const FIELDS: {
   key: keyof CardForm;
   label: string;
   placeholder: string;
   multiline?: boolean;
   keyboardType?: 'default' | 'phone-pad' | 'email-address' | 'url';
   numberOfLines?: number;
-}> = [
+}[] = [
   { key: 'fullName', label: 'Full Name', placeholder: 'John Appleseed' },
   { key: 'jobTitle', label: 'Job Title / Position', placeholder: 'Software Engineer' },
   { key: 'company', label: 'Company', placeholder: 'Acme Corp' },

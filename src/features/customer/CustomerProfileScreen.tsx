@@ -26,8 +26,6 @@ import {
 import { showAppAlert } from '@/src/utils/universalAlert';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown, FadeInUp, useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
-
-const SPRING_SNAPPY = { damping: 16, stiffness: 340, mass: 0.7 };
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNetInfo } from '@react-native-community/netinfo';
@@ -45,6 +43,8 @@ import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
 import { updateUserActiveProfile } from '@/src/services/firestoreService';
 import { HapticTap } from '@/src/utils/haptics';
 import type { CarouselCard } from '@/src/components/CardStackCarousel';
+
+const SPRING_SNAPPY = { damping: 16, stiffness: 340, mass: 0.7 };
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const BANNER_H = 140;

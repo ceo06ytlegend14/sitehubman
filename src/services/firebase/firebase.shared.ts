@@ -1,10 +1,9 @@
-import { FirebaseApp, getApp, getApps, initializeApp } from 'firebase/app';
+import { FirebaseApp, getApp, getApps, initializeApp , setLogLevel } from 'firebase/app';
 import { Firestore, getFirestore, initializeFirestore } from 'firebase/firestore';
 import { FirebaseStorage, getStorage } from 'firebase/storage';
 import { getFirebaseConfig, getFirebaseConfigError, isFirebaseConfigured } from '@/src/services/firebase/firebaseConfig';
 import { initFirebaseAppCheck } from '@/src/services/firebase/firebase.appCheck';
 
-import { setLogLevel } from 'firebase/app';
 
 // Suppress non-critical WebChannel transport logs in console
 try {

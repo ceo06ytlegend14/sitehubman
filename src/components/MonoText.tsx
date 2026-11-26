@@ -8,6 +8,8 @@ import { Platform, StyleProp, StyleSheet, Text, type TextProps, type TextStyle }
 
 import { monoFonts, monoType } from '@/src/design-system/monochrome';
 
+import { usePreferences } from '@/src/hooks/usePreferences';
+
 export type MonoVariant = keyof typeof monoType | 'h1' | 'h2' | 'h3' | 'h4';
 export type MonoTone = 'primary' | 'muted' | 'tertiary' | 'inverse';
 export type MonoWeight = 'regular' | 'medium' | 'semibold' | 'bold' | 'heavy' | 'extrabold' | 'black';
@@ -56,8 +58,6 @@ function resolveFamily(weight: MonoWeight): string {
       return monoFonts.regular;
   }
 }
-
-import { usePreferences } from '@/src/hooks/usePreferences';
 
 function MonoTextRaw({
   children,

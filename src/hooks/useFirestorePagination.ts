@@ -139,7 +139,7 @@ export function useFirestorePagination<T = DocumentData>(
  * Run multiple queries in parallel to reduce latency by 60%
  */
 export async function batchFirestoreQueries<T = any>(
-  queries: Array<Query<DocumentData>>
+  queries: Query<DocumentData>[]
 ): Promise<T[][]> {
   try {
     const snapshots = await Promise.all(queries.map((q) => getDocs(q)));

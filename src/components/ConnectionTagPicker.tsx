@@ -7,7 +7,7 @@
  * Selections are persisted via useConnectionIntelligence / connectionsIntelligenceService.
  */
 
-import { useCallback } from 'react';
+import { useCallback , useEffect } from 'react';
 import {
   Modal,
   Pressable,
@@ -22,7 +22,6 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { useEffect } from 'react';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import {

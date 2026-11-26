@@ -107,8 +107,8 @@ export const appleGooglePayService = {
 interface ApplePayPaymentRequest {
   countryCode: string;
   currencyCode: string;
-  merchantCapabilities: Array<'supports3DS' | 'supportsEmv' | 'supportsCredit' | 'supportsDebit'>;
-  supportedNetworks: Array<'amex' | 'discover' | 'masterCard' | 'visa'>;
+  merchantCapabilities: ('supports3DS' | 'supportsEmv' | 'supportsCredit' | 'supportsDebit')[];
+  supportedNetworks: ('amex' | 'discover' | 'masterCard' | 'visa')[];
   merchantIdentifier: string;
   total: {
     label: string;

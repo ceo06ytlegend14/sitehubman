@@ -12,7 +12,7 @@ type Unsubscribe = () => void;
 
 export function useLiveOrders(
   subscribe: ((cb: (orders: Order[]) => void, onError?: (e: Error) => void) => Unsubscribe) | null,
-  deps: ReadonlyArray<unknown> = [],
+  deps: readonly unknown[] = [],
 ) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);

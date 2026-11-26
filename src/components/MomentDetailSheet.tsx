@@ -19,9 +19,6 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-
-const SPRING_SNAPPY = { damping: 16, stiffness: 340, mass: 0.7 };
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import type { TapMoment, TapMomentSource } from '@/src/components/TapMomentCard';
@@ -36,6 +33,9 @@ import {
   momentToContact,
   openSms,
 } from '@/src/services/connectionsIntelligenceService';
+
+const SPRING_SNAPPY = { damping: 16, stiffness: 340, mass: 0.7 };
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export interface MomentDetailSheetProps {
   visible: boolean;

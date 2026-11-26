@@ -326,7 +326,7 @@ export function calculateBundlePrice(bundleId: string): number {
 }
 
 export function calculateOrderTotal(
-  items: Array<{ productId: string; quantity: number }>,
+  items: { productId: string; quantity: number }[],
   bundleId?: string
 ): { subtotal: number; savings: number; total: number } {
   if (bundleId) {

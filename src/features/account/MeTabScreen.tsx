@@ -20,6 +20,8 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { useBioPage } from '@/src/hooks/useBioPage';
 import { HapticTap } from '@/src/utils/haptics';
 
+import { showAppAlert } from '@/src/utils/universalAlert';
+
 const C = {
   canvas: '#0D0D0E',
   surface: '#242424',
@@ -40,8 +42,6 @@ interface MoreItem {
   danger?: boolean;
   onPress?: () => void;
 }
-
-import { showAppAlert } from '@/src/utils/universalAlert';
 
 export default function MeTabScreen() {
   const router = useRouter();

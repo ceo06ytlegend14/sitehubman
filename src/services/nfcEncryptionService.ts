@@ -231,7 +231,7 @@ export async function generateQrFallback(cardId: string): Promise<string> {
  * Rate limit tap analytics to detect suspicious activity
  */
 export function detectSuspiciousTapPattern(
-  tapHistory: Array<{ timestamp: number }>,
+  tapHistory: { timestamp: number }[],
   thresholds = {
     tapsPerHour: 100,
     tapsPerDay: 1000,

@@ -25,9 +25,6 @@ import Animated, {
   withTiming,
   withSpring,
 } from 'react-native-reanimated';
-
-const SPRING_SNAPPY = { damping: 16, stiffness: 340, mass: 0.7 };
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { AppText } from '@/src/components/AppText';
@@ -46,6 +43,9 @@ import {
 import { auth } from '@/src/services/firebaseClient';
 import { Haptics, HapticTap } from '@/src/utils/haptics';
 import { usePreferences } from '@/src/hooks/usePreferences';
+
+const SPRING_SNAPPY = { damping: 16, stiffness: 340, mass: 0.7 };
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 // ── Spring Submit Button ──────────────────────────────────────────────────────
 function SpringSubmitButton({ isDark, busy, isSubmitting, isSignUp, onPress }: {

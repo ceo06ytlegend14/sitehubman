@@ -664,7 +664,7 @@ export function subscribeCustomerOrders(
     callback([]);
     return () => {};
   }
-  const constraints: Array<ReturnType<typeof where>> = [
+  const constraints: ReturnType<typeof where>[] = [
     where('ownerId', '==', userId),
   ];
   // Also match the legacy createdBy field — sales-rep-created orders sometimes
@@ -686,7 +686,7 @@ export function subscribeCustomerOrders(
     if (onError) onError(error);
   };
 
-  const unsubs: Array<() => void> = [];
+  const unsubs: (() => void)[] = [];
 
   // Setup first listener (ownerId)
   unsubs.push(

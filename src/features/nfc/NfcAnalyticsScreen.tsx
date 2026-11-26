@@ -27,9 +27,9 @@ interface TapAnalytics {
   todayTaps: number;
   conversions: number;
   averageTimeOnPage: number;
-  topLocations: Array<{ city: string; count: number }>;
+  topLocations: { city: string; count: number }[];
   deviceBreakdown: { ios: number; android: number; other: number };
-  hourlyData: Array<{ hour: number; taps: number }>;
+  hourlyData: { hour: number; taps: number }[];
 }
 
 export default function NfcAnalyticsScreen() {
