@@ -36,7 +36,6 @@ const screens = [
   { section: 'auth', name: 'register', path: '/auth/register', auth: null },
   { section: 'guest', name: 'root', path: '/', auth: null },
   { section: 'guest', name: 'scan', path: '/scan', auth: null },
-  { section: 'guest', name: 'nfc-demo', path: '/nfc-demo', auth: null },
   { section: 'guest', name: 'guest-design', path: '/guest-design', auth: null },
   { section: 'guest', name: 'guest-choose-card', path: '/guest-choose-card', auth: null },
   { section: 'guest', name: 'guest-checkout', path: '/guest-checkout', auth: null },
@@ -101,7 +100,6 @@ const screens = [
   { section: 'public', name: 'card-preview-missing', path: '/card-preview/demo-card', auth: null },
   { section: 'utility', name: 'privacy-policy', path: '/privacy-policy', auth: null },
   { section: 'utility', name: 'terms-of-service', path: '/terms-of-service', auth: null },
-  { section: 'utility', name: 'icon-preview', path: '/icon-preview', auth: null },
 ];
 
 function ensureDir(dir) {
