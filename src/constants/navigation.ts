@@ -43,7 +43,6 @@ export const appRoutes = {
   analytics: '/analytics',
   analyticsNfc: '/analytics/nfc',
   analyticsQr: '/analytics/qr',
-  analyticsLinks: '/analytics/links',
   analyticsAudience: '/analytics/audience',
   shareProfile: '/share-profile',
   contactCard: '/contact-card',
