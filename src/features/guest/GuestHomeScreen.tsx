@@ -32,6 +32,7 @@ import {
   loadGuestCloudCard,
 } from '@/src/services/guestCardDraftService';
 import { useBioPage } from '@/src/hooks/useBioPage';
+import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import type { Order } from '@/src/types/models';
 import { NfcBeamModal } from '@/src/components/NfcBeamModal';
 import { QuickSetupSheet } from '@/src/components/QuickSetupSheet';
@@ -116,27 +117,34 @@ export function GuestHomeScreen() {
   }, [loadData]);
 
   const rawName = bioPage?.displayName || user?.displayName;
-  const heroName = (rawName && rawName !== 'Guest User') ? rawName : 'Thean Coc';
-  const heroRole = bioPage?.tagline || bioPage?.headline || 'Digital Identity · NFC Active';
-  const heroCompany = bioPage?.company || 'Sitehub';
+  const heroName = (rawName && rawName !== 'Guest User') ? rawName : (isGuest ? 'Guest' : 'Your name');
+  const heroRole = bioPage?.tagline || bioPage?.headline || '';
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning,' : hour < 18 ? 'Good afternoon,' : 'Good evening,';
 
-  const profileUrl = bioPage?.slug
-    ? `https://aviobrand.com/u/${bioPage.slug}`
-    : 'https://aviobrand.com/u/thean';
+  const profileUrl = bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : '';
 
-  const tapsCount = bioPage?.taps ?? 326;
-  const viewsCount = bioPage?.views ?? 1284;
-  const leadsCount = insights?.totalOrders ? insights.totalOrders + 4 : 12;
+  const tapsCount = bioPage?.taps ?? 0;
+  const viewsCount = bioPage?.views ?? 0;
+  const leadsCount = insights?.totalOrders ?? 0;
 
   const handleShare = () => {
     if (isGuest) {
       requireAccount(undefined, { message: 'Sign in to share your card.' });
-    } else {
-      setShowBeamModal(true);
+      return;
     }
+    if (!profileUrl) {
+      router.push('/edit-bio' as never);
+      return;
+    }
+    setShowBeamModal(true);
   };
 
   const handleNativeShare = async () => {
+    if (!profileUrl) {
+      router.push('/edit-bio' as never);
+      return;
+    }
     try {
       HapticTap.light();
       await Share.share({
@@ -176,7 +184,7 @@ export function GuestHomeScreen() {
                 </View>
               )}
               <View style={styles.headerTextGroup}>
-                <AppText style={styles.headerGreeting}>Good morning,</AppText>
+                <AppText style={styles.headerGreeting}>{greeting}</AppText>
                 <AppText style={styles.headerName} weight="semibold" numberOfLines={1}>
                   {heroName}
                 </AppText>
@@ -231,9 +239,11 @@ export function GuestHomeScreen() {
               <AppText style={styles.passHolderName} weight="bold" numberOfLines={1}>
                 {heroName.toUpperCase()}
               </AppText>
-              <AppText style={styles.passHolderRole} numberOfLines={1}>
-                {heroRole}
-              </AppText>
+              {heroRole ? (
+                <AppText style={styles.passHolderRole} numberOfLines={1}>
+                  {heroRole}
+                </AppText>
+              ) : null}
             </View>
 
             <View style={styles.passDivider} />
@@ -284,12 +294,6 @@ export function GuestHomeScreen() {
                 <AppText style={styles.bentoSubText}>{viewsCount} profile views</AppText>
               </View>
 
-              {/* Minimalist 5-bar spark indicator */}
-              <View style={styles.miniSparkRow}>
-                {[40, 65, 80, 55, 95].map((h, i) => (
-                  <View key={i} style={[styles.miniBar, { height: (h * 16) / 100 }]} />
-                ))}
-              </View>
             </Pressable>
 
             {/* Cell 2B: Captured Leads & CRM Vault */}
@@ -338,12 +342,16 @@ export function GuestHomeScreen() {
                 <AppIcon name="QrCode" size={14} color={MUTED} />
               </View>
               <View style={styles.bentoQrMiniWrapper}>
-                <QRCode
-                  value={profileUrl}
-                  size={54}
-                  color="#FFFFFF"
-                  backgroundColor="transparent"
-                />
+                {profileUrl ? (
+                  <QRCode
+                    value={profileUrl}
+                    size={54}
+                    color="#FFFFFF"
+                    backgroundColor="transparent"
+                  />
+                ) : (
+                  <AppIcon name="QrCode" size={40} color={MUTED} />
+                )}
               </View>
               <AppText style={styles.bentoSubText} numberOfLines={1}>
                 Scan to connect
@@ -500,12 +508,16 @@ export function GuestHomeScreen() {
           </InteractivePressable>
         </View>
         <View style={styles.modalQrContainer}>
-          <QRCode
-            value={profileUrl}
-            size={200}
-            color="#000000"
-            backgroundColor="#FFFFFF"
-          />
+          {profileUrl ? (
+            <QRCode
+              value={profileUrl}
+              size={200}
+              color="#000000"
+              backgroundColor="#FFFFFF"
+            />
+          ) : (
+            <AppText style={styles.modalHint}>Create your public profile first — your QR code encodes your real profile link.</AppText>
+          )}
         </View>
         <AppText style={styles.modalHint}>
           Point any smartphone camera to open {heroName}&apos;s digital card.

@@ -4,6 +4,7 @@ import { createShadow } from '@/src/utils/shadows';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import { AppText } from '@/src/components/AppText';
+import { PUBLIC_PROFILE_HOST } from '@/src/constants/publicProfile';
 
 type NfcGlobalCardBackProps = {
   /** Profile URL for QR code */
@@ -29,7 +30,13 @@ export const NfcGlobalCardBack = memo(function NfcGlobalCardBack({
 }: NfcGlobalCardBackProps) {
   const isLight = theme === 'light';
   const cardSizeStyle = width ? { width, height: height ?? width / 1.586 } : undefined;
-  const qrUrl = profileUrl.trim() || `https://sitehub.app/u/${cardId || 'gennfc-7a3f'}`;
+  const qrUrl = profileUrl.trim() || (cardId ? `${PUBLIC_PROFILE_HOST}/c/${cardId}` : PUBLIC_PROFILE_HOST);
+  let qrHost = PUBLIC_PROFILE_HOST.replace(/^https?:\/\//, '');
+  try {
+    qrHost = new URL(qrUrl).host;
+  } catch {
+    // keep the canonical host label
+  }
 
   return (
     <View
@@ -149,7 +156,7 @@ export const NfcGlobalCardBack = memo(function NfcGlobalCardBack({
                 isLight && styles.textMutedDark,
               ]}
             >
-              sitehub.app
+              {qrHost}
             </AppText>
           </View>
 

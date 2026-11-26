@@ -42,7 +42,7 @@ export function AiFollowUpModal({
   visible,
   onClose,
   recipientName,
-  senderName = 'Alexander Wright',
+  senderName = 'Me',
   email,
   phone,
   telegram,

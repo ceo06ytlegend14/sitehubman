@@ -317,7 +317,7 @@ export default function AdminUsersScreen() {
           <IosScrollView contentContainerStyle={styles.modalBody}>
             <AppText style={styles.fieldLabel}>Display Name *</AppText>
             <TextInput style={styles.input} value={form.displayName} onChangeText={v => setForm(f => ({ ...f, displayName: v }))}
-              placeholder="e.g. Phorn Penh" placeholderTextColor="#ccc" autoCapitalize="words" />
+              placeholder="e.g. Jane Doe" placeholderTextColor="#ccc" autoCapitalize="words" />
 
             <AppText style={styles.fieldLabel}>Email *</AppText>
             <TextInput style={styles.input} value={form.email} onChangeText={v => setForm(f => ({ ...f, email: v }))}

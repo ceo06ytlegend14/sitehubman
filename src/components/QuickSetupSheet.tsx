@@ -87,7 +87,7 @@ export function QuickSetupSheet({
                   style={styles.fieldInput}
                   value={name}
                   onChangeText={setName}
-                  placeholder="Alexander Wright"
+                  placeholder="Jane Doe"
                   placeholderTextColor="rgba(235,235,245,0.3)"
                   autoFocus
                   returnKeyType="next"

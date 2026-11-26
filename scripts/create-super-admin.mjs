@@ -1,5 +1,6 @@
 /**
- * Creates or upgrades the super admin account (default: theancoc69@gmail.com).
+ * Creates or upgrades a super admin account.
+ * The email comes from SITEHUB_SUPER_ADMIN_EMAIL — there is no default.
  *
  * Usage:
  *   node scripts/create-super-admin.mjs <password>
@@ -23,6 +24,10 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const SUPER_ADMIN_EMAIL = demoCredentials.superAdminEmail;
+if (!SUPER_ADMIN_EMAIL) {
+  console.error('Set SITEHUB_SUPER_ADMIN_EMAIL (no default) before running this script.');
+  process.exit(1);
+}
 const SUPER_ADMIN_PASSWORD = process.argv[2] || demoCredentials.superAdminPassword;
 
 if (!SUPER_ADMIN_PASSWORD) {
@@ -49,7 +54,7 @@ try {
     doc(db, 'users', uid),
     {
       email: SUPER_ADMIN_EMAIL,
-      displayName: 'Thean (Super Admin)',
+      displayName: 'Super Admin',
       role: 'super_admin',
       language: 'en',
       isActive: true,

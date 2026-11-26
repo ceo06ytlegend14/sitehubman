@@ -4,7 +4,7 @@
  *  ORD-9101
  *  Wood NFC Card  $6.99
  *  🟢 Cash Received   🟣 Approved
- *  Customer: Chanthean
+ *  Customer: account holder
  *  Printer: Auto Assigned
  *  ██████░░░░ 60%
  *  [Approve Production]

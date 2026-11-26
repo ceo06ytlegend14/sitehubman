@@ -23,6 +23,7 @@ import { AppIcon } from '@/src/components/AppIcon';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useBioPage } from '@/src/hooks/useBioPage';
+import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import { HapticTap } from '@/src/utils/haptics';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -45,7 +46,7 @@ export function HomeScreen() {
   const { user } = useAuth();
   const { bioPage } = useBioPage(user?.id ?? '');
 
-  const userName = bioPage?.displayName || user?.displayName || 'Thean Coc';
+  const userName = bioPage?.displayName || user?.displayName || 'Your name';
   const userTitle = bioPage?.tagline || bioPage?.headline || 'Founder & Director';
   const company = bioPage?.company || 'NFC Global';
 
@@ -58,11 +59,7 @@ export function HomeScreen() {
     }, 2200);
   }, []);
 
-  const profileUrl = useMemo(() => {
-    if (bioPage?.slug) return `https://nfcglobal.com/u/${bioPage.slug}`;
-    const slug = userName.toLowerCase().replace(/[^a-z0-9]/g, '');
-    return `https://nfcglobal.com/u/${slug || 'thean'}`;
-  }, [bioPage?.slug, userName]);
+  const profileUrl = useMemo(() => (bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : ''), [bioPage?.slug]);
 
   const handleTapToShare = useCallback(() => {
     HapticTap.confidentClick();

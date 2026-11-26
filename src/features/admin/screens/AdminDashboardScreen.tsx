@@ -80,7 +80,7 @@ export default function AdminDashboardScreen() {
 
   if (!isAdmin) return <Redirect href="/auth/login" />;
 
-  const displayName = user?.displayName?.trim() || 'Alexander Admin';
+  const displayName = user?.displayName?.trim() || 'Admin';
   const initial = (displayName[0] || 'A').toUpperCase();
 
   return (

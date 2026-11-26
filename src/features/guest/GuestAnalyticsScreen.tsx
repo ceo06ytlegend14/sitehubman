@@ -34,6 +34,7 @@ import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { getCustomerInsights, type CustomerInsights } from '@/src/services/customerInsightsService';
 import { HapticTap } from '@/src/utils/haptics';
 import { pageThemes } from '@/src/constants/pageThemes';
+import { PUBLIC_PROFILE_HOST } from '@/src/constants/publicProfile';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = Math.min(SCREEN_WIDTH - 48, 350);
@@ -46,7 +47,7 @@ export function GuestAnalyticsScreen() {
   const [insights, setInsights] = useState<CustomerInsights | null>(null);
   const [loading, setLoading] = useState(!isGuest);
 
-  const cardName = bioPage?.displayName?.trim() || user?.displayName?.trim() || 'Alexander Wright';
+  const cardName = bioPage?.displayName?.trim() || user?.displayName?.trim() || 'Your Card';
   const cardTitle = bioPage?.tagline?.trim() || bioPage?.headline?.trim() || 'Founder & CEO';
   const bioSlug = bioPage?.slug || insights?.bioSlug || 'demo';
 
@@ -182,7 +183,7 @@ export function GuestAnalyticsScreen() {
               {cardName}
             </AppText>
             <AppText style={styles.profileActionSub}>
-              https://aviobrand.com/u/{bioSlug}
+              {PUBLIC_PROFILE_HOST}/c/{bioSlug}
             </AppText>
           </View>
           <Pressable

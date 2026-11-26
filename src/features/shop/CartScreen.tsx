@@ -44,24 +44,9 @@ interface CartItem {
 }
 
 export default function CartScreen() {
-  const [items, setItems] = useState<CartItem[]>([
-    {
-      id: 'cart-1',
-      name: 'Custom Metal NFC Card',
-      material: 'Matte Black Stainless Steel',
-      engravedName: 'THEAN COC',
-      price: 69.0,
-      qty: 1,
-    },
-    {
-      id: 'cart-2',
-      name: 'Backup PVC NFC Card',
-      material: 'Recycled Matte Black PVC',
-      engravedName: 'THEAN COC',
-      price: 19.0,
-      qty: 2,
-    },
-  ]);
+  // Bag starts empty — items are added from the product screens. This screen has no
+  // persisted bag yet, so it never invents contents the user did not choose.
+  const [items, setItems] = useState<CartItem[]>([]);
 
   const handleQtyChange = useCallback((id: string, delta: number) => {
     HapticTap.light();

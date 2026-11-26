@@ -25,6 +25,7 @@ import { AppText } from '@/src/components/AppText';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useBioPage } from '@/src/hooks/useBioPage';
+import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import { HapticTap } from '@/src/utils/haptics';
 
 interface WalletPassProps {
@@ -40,9 +41,9 @@ export default function WalletPassScreen({
 }: WalletPassProps) {
   const { user } = useAuth();
   const { bioPage } = useBioPage(user?.id ?? '');
-  const displayName = cardName || bioPage?.displayName || user?.displayName || 'Alexander Wright';
-  const displayTitle = bioPage?.tagline || bioPage?.headline || 'Founder & CEO · AVIO';
-  const passUrl = cardLink || (bioPage?.slug ? `https://aviobrand.com/u/${bioPage.slug}` : 'https://aviobrand.com/u/demo');
+  const displayName = cardName || bioPage?.displayName || user?.displayName || 'Your Name';
+  const displayTitle = bioPage?.tagline || bioPage?.headline || '';
+  const passUrl = cardLink || (bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : '');
 
   const handleWalletAvailability = () => {
     HapticTap.heavy();
@@ -98,9 +99,13 @@ export default function WalletPassScreen({
             {/* Pass QR Barcode Section */}
             <View style={styles.passBarcodeSection}>
               <View style={styles.qrWhiteBox}>
-                <QRCode value={passUrl} size={140} backgroundColor="#FFFFFF" color="#000000" />
+                {passUrl ? (
+                  <QRCode value={passUrl} size={140} backgroundColor="#FFFFFF" color="#000000" />
+                ) : (
+                  <AppText style={styles.passUrlText} numberOfLines={2}>Publish your profile first — the pass encodes your real link.</AppText>
+                )}
               </View>
-              <AppText style={styles.passUrlText} numberOfLines={1}>{passUrl}</AppText>
+              {passUrl ? <AppText style={styles.passUrlText} numberOfLines={1}>{passUrl}</AppText> : null}
               <AppText style={styles.passSecurityText}>
                 PROFILE QR · SHAREABLE NOW
               </AppText>
@@ -158,7 +163,13 @@ export default function WalletPassScreen({
 
           {/* Share Pass Link */}
           <Pressable
-            onPress={() => Share.share({ message: `${displayName} — ${passUrl}`, url: passUrl })}
+            onPress={() => {
+              if (!passUrl) {
+                router.push('/edit-bio' as never);
+                return;
+              }
+              void Share.share({ message: `${displayName} — ${passUrl}`, url: passUrl });
+            }}
             style={({ pressed }) => [styles.shareLinkBtn, pressed && styles.pressed]}
           >
             <AppIcon name="Share2" size={15} color="rgba(255,255,255,0.6)" />

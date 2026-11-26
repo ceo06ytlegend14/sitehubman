@@ -377,7 +377,7 @@ export function SettingsScreen() {
               delay={240}
               icon="Globe"
               title="Public Profile Visibility"
-              subtitle="sitehubman.app link status"
+              subtitle="Public profile link status"
               valueText="Public"
               onPress={handleCopyProfileUrl}
             />

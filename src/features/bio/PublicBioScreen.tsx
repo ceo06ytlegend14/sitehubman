@@ -1,7 +1,7 @@
 /**
- * PublicBioScreen — Ban Nguyen Business Specification Public Bio Profile.
+ * PublicBioScreen — Public bio / tap-page renderer.
  *
- * Full implementation of Ban Nguyen's exact specifications:
+ * Renders only published Firestore profile data:
  *  - Multilingual support (VI / EN toggle)
  *  - Full-bleed executive cover hero with avatar & verified badge
  *  - Identity block (Name, Title, Org, Positioning line)
@@ -38,7 +38,6 @@ import {
 import { notifyCardOwnerOfSave, notifyCardOwnerOfLeadCapture, notifyCardOwnerOfView } from '@/src/services/cardViewNotificationService';
 import { captureLead } from '@/src/services/leadService';
 import type { BioPage, TapActionBlock, TapActionItem } from '@/src/types/models';
-import { BAN_NGUYEN_SEED_BIO } from '@/src/data/seedBanNguyenBio';
 import { HapticTap } from '@/src/utils/haptics';
 
 import { ConnectIntentModal } from '@/src/components/ConnectIntentModal';
@@ -93,25 +92,13 @@ export function PublicBioScreen({ slug, cardId }: Props) {
           setPublicUrl(resolved.publicUrl);
           setResolvedCardId(resolved.cardId);
         } else {
-          // Default fallback to Ban Nguyen seed bio
-          const seed = BAN_NGUYEN_SEED_BIO as BioPage;
-          setBioPage({
-            ...seed,
-            id: slug || cardId || 'pandev00',
-            userId: 'seed',
-            slug: slug || 'pandev00',
-          });
-          setPublicUrl(`https://sitehubman.app/u/${slug || 'pandev00'}`);
+          setBioPage(null);
+          setPublicUrl('');
         }
       } catch (err) {
         console.warn('Failed to load profile:', err);
-        const seed = BAN_NGUYEN_SEED_BIO as BioPage;
-        setBioPage({
-          ...seed,
-          id: 'pandev00',
-          userId: 'seed',
-          slug: 'pandev00',
-        });
+        setBioPage(null);
+        setPublicUrl('');
       } finally {
         setIsLoading(false);
       }
@@ -143,12 +130,12 @@ export function PublicBioScreen({ slug, cardId }: Props) {
 
   async function handleShare() {
     HapticTap.light();
-    const url = publicUrl || `https://sitehubman.app/u/${slug || bioPage?.slug || 'pandev00'}`;
+    const url = publicUrl || (bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : slug ? buildSlugProfileUrl(slug) : '');
     try {
       await Share.share({
-        message: `AVIO Smart Pass: ${bioPage?.displayName || 'Ban Nguyen'} - ${url}`,
+        message: `AVIO Smart Pass: ${bioPage?.displayName || 'Digital business card'} - ${url}`,
         url,
-        title: bioPage?.displayName || 'Ban Nguyen Profile',
+        title: bioPage?.displayName || 'Digital business card',
       });
     } catch {
       // ignore
@@ -157,12 +144,12 @@ export function PublicBioScreen({ slug, cardId }: Props) {
 
   async function handleSaveContact() {
     HapticTap.heavy();
-    const name = bioPage?.displayName || 'Ban Nguyen';
+    const name = bioPage?.displayName || '';
     const title = bioPage?.jobTitleVi || bioPage?.jobTitleEn || bioPage?.tagline || '';
     const org = bioPage?.organization || '';
     const email = bioPage?.email || '';
     const phone = bioPage?.whatsapp?.replace(/\D/g, '') ? bioPage.whatsapp : '';
-    const url = publicUrl || `https://sitehubman.app/u/${bioPage?.slug || 'pandev00'}`;
+    const url = publicUrl || (bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : '');
 
     const vcard = [
       'BEGIN:VCARD',
@@ -206,7 +193,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
     try {
       const ownerId = bioPage?.userId || 'guest';
       await captureLead({
-        profileId: bioPage?.id || slug || 'pandev00',
+        profileId: bioPage?.id || slug || 'unknown-profile',
         ownerUserId: ownerId,
         name: leadName.trim(),
         email: leadEmail.trim() || undefined,
@@ -245,23 +232,39 @@ export function PublicBioScreen({ slug, cardId }: Props) {
     );
   }
 
-  const bio = bioPage || (BAN_NGUYEN_SEED_BIO as BioPage);
-  const initial = (bio.displayName.trim()[0] ?? 'B').toUpperCase();
-  const canonicalUrl = publicUrl || `https://sitehubman.app/u/${bio.slug || 'pandev00'}`;
+  if (!bioPage) {
+    return (
+      <View style={styles.root}>
+        <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
+          <View style={styles.loadingCenter}>
+            <AppIcon name="UserX" size={40} color="#5C5C60" />
+            <AppText style={styles.notFoundTitle} weight="extrabold">Profile unavailable</AppText>
+            <AppText style={styles.notFoundBody}>
+              This card is not linked to a published profile, or the link has expired. Ask the owner to share a fresh link.
+            </AppText>
+          </View>
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  const bio = bioPage;
+  const initial = (bio.displayName.trim()[0] ?? '?').toUpperCase();
+  const canonicalUrl = publicUrl || (bio.slug ? buildSlugProfileUrl(bio.slug) : '');
 
   // Multilingual resolution
   const currentTitle = lang === 'vi' ? (bio.jobTitleVi || bio.heroTitleVi || bio.tagline) : (bio.jobTitleEn || bio.heroTitleEn || bio.jobTitleVi || bio.tagline);
-  const currentOrg = bio.organization || bio.heroOrg || bio.company || 'SAGOZEN LLC';
+  const currentOrg = bio.organization || bio.heroOrg || bio.company || '';
   const currentPos = lang === 'vi' ? (bio.positioningLineVi || bio.tagline) : (bio.positioningLineEn || bio.positioningLineVi);
 
-  const primaryLabel = lang === 'vi' ? (bio.primaryActionLabelVi || 'Xem khoá AI Coaching 1-1') : (bio.primaryActionLabelEn || 'See the 1-1 AI Coaching programme');
-  const primarySub = lang === 'vi' ? (bio.primaryActionSubVi || 'Lộ trình 9 bước · học phí theo đợt') : (bio.primaryActionSubEn || 'Nine stages · paid in stages');
-  const primaryUrl = bio.primaryActionUrl || 'https://t.me/pandev00';
+  const primaryLabel = lang === 'vi' ? (bio.primaryActionLabelVi || '') : (bio.primaryActionLabelEn || bio.primaryActionLabelVi || '');
+  const primarySub = lang === 'vi' ? (bio.primaryActionSubVi || '') : (bio.primaryActionSubEn || bio.primaryActionSubVi || '');
+  const primaryUrl = bio.primaryActionUrl || '';
   const primaryIconName = (bio.primaryActionIcon as AppIconName) || 'FileText';
 
-  const actionBlocksList: TapActionBlock[] = bio.actionBlocks?.length ? bio.actionBlocks : BAN_NGUYEN_SEED_BIO.actionBlocks ?? [];
+  const actionBlocksList: TapActionBlock[] = bio.actionBlocks ?? [];
 
-  const ownerLine = lang === 'vi' ? (bio.ownerLineVi || 'Nội dung do Ban Nguyen cung cấp.') : (bio.ownerLineEn || 'Content provided by Ban Nguyen.');
+  const ownerLine = lang === 'vi' ? (bio.ownerLineVi || 'Nội dung do chủ trang cung cấp.') : (bio.ownerLineEn || 'Content provided by the profile owner.');
   const trustNote = lang === 'vi' ? (bio.trustNoteVi || 'Avio lưu trữ trang này và không xác minh danh tính.') : (bio.trustNoteEn || 'Avio hosts this page and does not verify identity.');
 
   return (
@@ -354,7 +357,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
               <View style={styles.slugPill}>
                 <AppIcon name="Globe" size={10} color="rgba(255,255,255,0.5)" />
                 <AppText style={styles.slugBadgeText}>
-                  sitehubman.app/{bio.slug || 'pandev00'}
+                  {bio.slug ? buildSlugProfileUrl(bio.slug).replace(/^https?:\/\//, '') : 'Profile not published'}
                 </AppText>
               </View>
             </View>
@@ -405,6 +408,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
           </View>
 
           {/* ── Primary Action Card (Hành động chính) ── */}
+          {primaryUrl ? (
           <Pressable
             style={({ pressed }) => [styles.primaryActionCard, pressed && styles.pressed]}
             onPress={() => {
@@ -434,6 +438,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
               <AppText style={styles.primaryActionCtaText} weight="extrabold">Truy cập ngay →</AppText>
             </View>
           </Pressable>
+          ) : null}
 
           {/* ── Action Blocks (Up to 3 blocks) ── */}
           {actionBlocksList.map((block, bIdx) => {
@@ -644,7 +649,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
                     style={styles.textInput}
                     value={leadCompany}
                     onChangeText={setLeadCompany}
-                    placeholder="Tech Lead @ SAGOZEN"
+                    placeholder="Company · Role"
                     placeholderTextColor="rgba(255,255,255,0.3)"
                   />
                 </View>
@@ -684,6 +689,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#0D0D0E',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  notFoundTitle: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  notFoundBody: {
+    color: '#9A9AA0',
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 8,
+    maxWidth: 320,
+    textAlign: 'center',
   },
   loadingAvatarPulse: {
     width: 64,

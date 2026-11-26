@@ -207,7 +207,7 @@ export function DemoBioScreen() {
           {/* NFC Footer */}
           <View style={styles.nfcFooter}>
             <View style={styles.nfcDot} />
-            <AppText style={styles.nfcFooterText}>AVIO Smart Pass · DEMO · Verified</AppText>
+            <AppText style={styles.nfcFooterText}>AVIO Smart Pass · DEMO PROFILE</AppText>
           </View>
         </IosScrollView>
       </SafeAreaView>
@@ -254,8 +254,8 @@ export function DemoBioScreen() {
                 <View style={styles.exchangeSuccessIcon}>
                   <AppIcon name="Check" size={22} color="#000000" />
                 </View>
-                <AppText style={styles.exchangeSuccessTitle} weight="extrabold">Contact Sent!</AppText>
-                <AppText style={styles.exchangeSuccessSub}>Your details were sent to Alex.</AppText>
+                <AppText style={styles.exchangeSuccessTitle} weight="extrabold">Demo only</AppText>
+                <AppText style={styles.exchangeSuccessSub}>This is a demo profile — nothing was sent. Create your own AVIO Smart Pass to exchange contacts for real.</AppText>
               </View>
             ) : (
               <View style={styles.exchangeForm}>
@@ -265,7 +265,7 @@ export function DemoBioScreen() {
                     style={styles.textInput}
                     value={leadName}
                     onChangeText={setLeadName}
-                    placeholder="e.g. Sarah Jenkins"
+                    placeholder="e.g. Jane Doe"
                     placeholderTextColor="rgba(255,255,255,0.3)"
                     autoCapitalize="words"
                   />
@@ -277,7 +277,7 @@ export function DemoBioScreen() {
                     style={styles.textInput}
                     value={leadEmail}
                     onChangeText={setLeadEmail}
-                    placeholder="sarah@company.com"
+                    placeholder="jane.doe@example.com"
                     placeholderTextColor="rgba(255,255,255,0.3)"
                     keyboardType="email-address"
                     autoCapitalize="none"

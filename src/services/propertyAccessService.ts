@@ -58,7 +58,8 @@ export async function setVisitorPassStatus(passId: string, status: VisitorPass['
 
 export async function createWalletCredential(propertyId: string, residentId: string, label: string): Promise<AccessCredential> {
   const createdAt = now();
-  const value = { propertyId, residentId, label, kind: 'wallet' as const, status: 'active' as const, walletPassUrl: `https://pass.sitehub.app/access/${token()}`, createdAt, updatedAt: serverTimestamp() };
+  // No live pass endpoint exists yet; issuer integration is pending.
+  const value = { propertyId, residentId, label, kind: 'wallet' as const, status: 'active' as const, walletPassUrl: `wallet-credential://${token().slice(0, 32)}`, createdAt, updatedAt: serverTimestamp() };
   const reference = await addDoc(collection(db, firebaseCollections.accessCredentials), value);
   return { id: reference.id, ...value };
 }

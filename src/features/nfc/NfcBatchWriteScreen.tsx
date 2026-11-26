@@ -16,7 +16,9 @@ import { T } from '@/src/constants/theme';
 import { HapticTap } from '@/src/utils/haptics';
 import { writeNfcUrl, startNfcManager, isNfcAvailable } from '@/src/services/nfcManagerService';
 import { encryptNfcUrl, registerNfcTag } from '@/src/services/nfcEncryptionService';
+import { collection, getDocs, limit, query, where } from 'firebase/firestore';
 import { db } from '@/src/services/firebaseClient';
+import { firebaseCollections } from '@/src/constants/collections';
 
 interface BatchCard {
   id: string;
@@ -39,19 +41,44 @@ export default function NfcBatchWriteScreen() {
   const progressAnim = useRef(new Animated.Value(0)).current;
 
   const handleLoadBatch = useCallback(async () => {
-    // TODO: Load pending orders from Firestore
-    // For now, use mock data
-    const mockBatch: BatchCard[] = Array.from({ length: 10 }, (_, i) => ({
-      id: `card_${i + 1}`,
-      cardId: `card_${Date.now()}_${i}`,
-      userId: 'user_123',
-      status: 'pending',
-    }));
+    try {
+      const pendingQuery = query(
+        collection(db, firebaseCollections.printerJobs),
+        where('stage', '==', 'printing'),
+        limit(50)
+      );
+      const snapshot = await getDocs(pendingQuery);
+      const pending: BatchCard[] = snapshot.docs
+        .map((entry): BatchCard | null => {
+          const data = entry.data() as Record<string, unknown>;
+          const cardId = typeof data.cardId === 'string' ? data.cardId.trim() : '';
+          if (!cardId) return null;
+          return {
+            id: entry.id,
+            cardId,
+            userId: typeof data.userId === 'string' ? data.userId : (typeof data.customerId === 'string' ? data.customerId : ''),
+            status: 'pending' as const,
+          };
+        })
+        .filter((entry): entry is BatchCard => entry !== null);
 
-    setBatchCards(mockBatch);
-    setCurrentIndex(0);
-    setMode('ready');
-    HapticTap.success();
+      if (pending.length === 0) {
+        setBatchCards([]);
+        setMode('idle');
+        alert('No printed cards are waiting for NFC encoding.');
+        return;
+      }
+
+      setBatchCards(pending);
+      setCurrentIndex(0);
+      setMode('ready');
+      HapticTap.success();
+    } catch (error) {
+      console.error('[NfcBatchWrite] Failed to load pending jobs', error);
+      setBatchCards([]);
+      setMode('idle');
+      alert('Could not load printed cards awaiting NFC encoding. Check your connection and permissions.');
+    }
   }, []);
 
   const handleStartBatch = useCallback(async () => {
@@ -93,7 +120,7 @@ export default function NfcBatchWriteScreen() {
 
       // Register tag in database
       const uid = `NFC_${Date.now()}`; // TODO: Read actual UID from tag
-      await registerNfcTag(uid, card.cardId, card.userId, db);
+      await registerNfcTag(uid, card.cardId, card.userId);
 
       // Mark success
       setBatchCards((prev) => {

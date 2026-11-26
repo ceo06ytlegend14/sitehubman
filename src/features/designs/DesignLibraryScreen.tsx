@@ -68,39 +68,7 @@ export default function DesignLibraryScreen() {
       setDesigns(designsData);
     } catch (error) {
       console.error('[DesignLibrary] Load failed', error);
-      // Fallback to mock data
-      setDesigns([
-        {
-          id: 'design_1',
-          name: 'Minimalist Black',
-          category: 'saved',
-          preview: 'https://via.placeholder.com/300x180/18181B/FFFFFF?text=Minimalist+Black',
-          createdAt: new Date(),
-          timesUsed: 12,
-          isFavorite: true,
-          tags: ['minimal', 'professional'],
-        },
-        {
-          id: 'design_2',
-          name: 'Business Card Pro',
-          category: 'templates',
-          preview: 'https://via.placeholder.com/300x180/27272A/A1A1AA?text=Business+Card+Pro',
-          createdAt: new Date(),
-          timesUsed: 8,
-          isFavorite: false,
-          tags: ['business', 'professional'],
-        },
-        {
-          id: 'design_3',
-          name: 'Modern Tech',
-          category: 'templates',
-          preview: 'https://via.placeholder.com/300x180/2596BE/FFFFFF?text=Modern+Tech',
-          createdAt: new Date(),
-          timesUsed: 5,
-          isFavorite: true,
-          tags: ['tech', 'modern'],
-        },
-      ]);
+      setDesigns([]);
     } finally {
       setLoading(false);
     }

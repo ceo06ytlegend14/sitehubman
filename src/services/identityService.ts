@@ -5,7 +5,7 @@
  *   guestId      → GST_xxxxxxxx   (temporary visitor identity)
  *   cardId       → BC-NFC_XXXXXXXX (card identity)
  *   orderNumber  → ORD_xxxxxxxx   (human-readable order reference)
- *   profileSlug  → chanthean-a1b2c3 (public profile URL segment)
+ *   profileSlug  → name-suffix (public profile URL segment)
  *
  * Firestore document IDs remain auto-generated for orders.
  * `orderNumber` is a business-facing display ID stored as a field.
@@ -70,7 +70,7 @@ export function generateOrderNumber(): string {
 /**
  * Generate a public profile slug from a name.
  *
- * If a name is provided, creates `name-suffix` (e.g. `chanthean-a1b2c3`).
+ * If a name is provided, creates `name-suffix` (e.g. `jane-doe-a1b2c3`).
  * Otherwise, generates a random 8-character slug.
  */
 export function generateProfileSlug(name?: string): string {

@@ -42,10 +42,10 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 export function NfcBeamModal({
   visible,
   onClose,
-  fullName = 'Alexander Wright',
-  title = 'Founder & CEO · AVIO',
-  cardId = 'BC-NFC_JEWDVONG',
-  url = 'https://aviobrand.com/u/demo',
+  fullName = 'Your Name',
+  title = '',
+  cardId = '',
+  url = '',
 }: NfcBeamModalProps) {
   const [copied, setCopied] = useState(false);
   const pulseAnim1 = useRef(new Animated.Value(1)).current;

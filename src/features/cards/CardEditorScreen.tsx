@@ -44,7 +44,7 @@ export function CardEditorScreen() {
   const { user } = useAuth();
   const { bioPage, saveBioPage } = useBioPage(user?.id ?? '');
 
-  const [name, setName] = useState(bioPage?.displayName || user?.displayName || 'Thean Coc');
+  const [name, setName] = useState(bioPage?.displayName || user?.displayName || 'Your name');
   const [title, setTitle] = useState(bioPage?.tagline || bioPage?.headline || 'Founder & Director');
   const [company, setCompany] = useState(bioPage?.company || 'NFC Global');
   const [cardStyleIndex, setCardStyleIndex] = useState(0);
@@ -63,7 +63,7 @@ export function CardEditorScreen() {
 
   const handleSaveModal = () => {
     HapticTap.softConfirmation();
-    if (editingField === 'name') setName(tempValue.trim() || 'Thean Coc');
+    if (editingField === 'name') setName(tempValue.trim() || 'Your name');
     if (editingField === 'title') setTitle(tempValue.trim() || 'Founder & Director');
     if (editingField === 'company') setCompany(tempValue.trim() || 'NFC Global');
     setEditingField(null);

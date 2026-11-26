@@ -22,6 +22,7 @@ import { useOrders } from '@/src/hooks/useOrders';
 import { appRoutes } from '@/src/constants/navigation';
 import { formatOrderTotal } from '@/src/utils/orderPricing';
 import { HapticTap } from '@/src/utils/haptics';
+import { PUBLIC_PROFILE_HOST } from '@/src/constants/publicProfile';
 
 export default function SalesDashboardScreen() {
   const { user } = useAuth();
@@ -31,7 +32,7 @@ export default function SalesDashboardScreen() {
     refresh();
   }, [refresh]);
 
-  const displayName = user?.displayName || 'Alexander Wright';
+  const displayName = user?.displayName || 'Sales';
   const firstName = displayName.split(' ')[0] || 'Sales';
   const referralCode = user?.email
     ? `SALE-${user.email.replace(/[@.]/g, '').slice(0, 8).toUpperCase()}`
@@ -69,7 +70,7 @@ export default function SalesDashboardScreen() {
 
   const handleShareReferral = async () => {
     HapticTap.medium();
-    const link = `https://sitehubman.app/order?ref=${referralCode}`;
+    const link = `${PUBLIC_PROFILE_HOST}/order?ref=${referralCode}`;
     await Share.share({
       message: `Order AVIO NFC Smart Cards with my sales partner link:\n${link}`,
       url: link,

@@ -29,6 +29,15 @@ assertFirebaseScriptConfig();
 const DEMO_PASSWORD = demoCredentials.password;
 const ADMIN_EMAIL = demoCredentials.adminEmail;
 
+// Demo seeds create known-credential accounts and fake orders; keep them out of
+// the live project unless explicitly allowed (or run against the emulator).
+const ALLOW_LIVE =
+  process.env.SITEHUB_SEED_ALLOW_LIVE === '1' || Boolean(process.env.FIRESTORE_EMULATOR_HOST);
+if (!ALLOW_LIVE) {
+  console.error('REFUSING TO SEED LIVE PROJECT. Set FIRESTORE_EMULATOR_HOST or SITEHUB_SEED_ALLOW_LIVE=1.');
+  process.exit(1);
+}
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -68,7 +77,7 @@ function orderStatusToJobStage(s) {
 // ─── Staff ────────────────────────────────────────────────────────────────────
 
 const STAFF = [
-  { email: 'sales@demo.com',    password: DEMO_PASSWORD, displayName: 'Phorn Penh',      role: 'sales',   branch: 'Phnom Penh HQ', phone: '+855 12 345 678' },
+  { email: 'sales@demo.com',    password: DEMO_PASSWORD, displayName: 'Demo Sales',       role: 'sales',   branch: 'Phnom Penh HQ', phone: '+855 12 345 678' },
   { email: 'sales2@demo.com',   password: DEMO_PASSWORD, displayName: 'Chan Thea',       role: 'sales',   branch: 'Siem Reap',     phone: '+855 17 234 567' },
   { email: 'printer@demo.com',  password: DEMO_PASSWORD, displayName: 'Demo Printer',    role: 'printer', branch: 'Workshop A',    phone: '+855 11 111 111' },
   { email: 'printer2@demo.com', password: DEMO_PASSWORD, displayName: 'Workshop Sothea', role: 'printer', branch: 'Workshop B',    phone: '+855 99 876 543' },

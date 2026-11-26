@@ -48,8 +48,8 @@ export default function MeTabScreen() {
   const { user, signOutUser } = useAuth();
   const { bioPage } = useBioPage(user?.id ?? '');
 
-  const userName = bioPage?.displayName || user?.displayName || 'Thean Coc';
-  const userEmail = user?.email || 'thean@company.com';
+  const userName = bioPage?.displayName || user?.displayName || 'Your name';
+  const userEmail = user?.email || '';
   const initial = userName.charAt(0).toUpperCase();
 
   const handleSignOut = useCallback(() => {

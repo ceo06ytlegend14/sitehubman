@@ -74,26 +74,7 @@ export default function PaymentMethodsScreen() {
       setMethods(methodsData);
     } catch (error) {
       console.error('[PaymentMethods] Load failed', error);
-      // Mock data for demo
-      setMethods([
-        {
-          id: 'pm_1',
-          type: 'card',
-          isDefault: true,
-          last4: '4242',
-          brand: 'Visa',
-          expiryMonth: 12,
-          expiryYear: 2026,
-        },
-        {
-          id: 'pm_2',
-          type: 'aba',
-          isDefault: false,
-          accountName: 'Thean Coc',
-          accountNumber: '001234567',
-          bankName: 'ABA Bank',
-        },
-      ]);
+      setMethods([]);
     } finally {
       setLoading(false);
     }

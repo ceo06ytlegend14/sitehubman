@@ -21,6 +21,9 @@ import { AppText } from '@/src/components/AppText';
 import { AppIcon } from '@/src/components/AppIcon';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { HapticTap } from '@/src/utils/haptics';
+import { useAuth } from '@/src/hooks/useAuth';
+import { useBioPage } from '@/src/hooks/useBioPage';
+import { buildSlugProfileUrl, PUBLIC_PROFILE_HOST } from '@/src/constants/publicProfile';
 
 const C = {
   canvas: '#000000',
@@ -37,20 +40,26 @@ const C = {
 } as const;
 
 export default function DesignProofScreen() {
-  const [selectedSide, setSelectedSide] = useState<'front' | 'back'>('front');
-  const [approved, setApproved] = useState(false);
+  const { user } = useAuth();
+  const { bioPage } = useBioPage(user?.id ?? '');
+  const cardName = (bioPage?.displayName || user?.displayName || 'Your Name').toUpperCase();
+  const cardRole = bioPage?.tagline || bioPage?.headline || '';
+  const cardSlugLine = bioPage?.slug
+    ? buildSlugProfileUrl(bioPage.slug).replace(/^https?:\/\//, '')
+    : PUBLIC_PROFILE_HOST.replace(/^https?:\/\//, '');
 
+  const [selectedSide, setSelectedSide] = useState<'front' | 'back'>('front');
+
+  // NOTE: there is no proof-approval endpoint yet. This screen is a visual sample of what
+  // your production proof looks like; approvals happen per order in the Orders tab.
   const handleApprove = useCallback(() => {
-    HapticTap.success();
-    setApproved(true);
+    HapticTap.light();
     Alert.alert(
-      'Proof Approved! ✓',
-      'Your custom design has been sent to our CNC fiber laser queue. Production begins immediately.',
+      'Sample proof',
+      'This preview does not submit an approval. When your card reaches proof stage, approve it from the order in the Orders tab.',
       [
-        {
-          text: 'Track Production',
-          onPress: () => router.push('/orders/track' as any),
-        },
+        { text: 'Stay', style: 'cancel' },
+        { text: 'Go to Orders', onPress: () => router.push('/(tabs)/orders' as any) },
       ]
     );
   }, []);
@@ -59,21 +68,12 @@ export default function DesignProofScreen() {
     HapticTap.light();
     if (typeof Alert.prompt === 'function') {
       Alert.prompt(
-        'Request Revision',
-        'Please describe changes you need our design team to make (e.g. logo alignment, font size):',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Submit Request',
-            onPress: () => {
-              HapticTap.softConfirmation();
-              Alert.alert('Sent', 'Our production designers will update your proof within 4 hours.');
-            },
-          },
-        ]
+        'Sample proof',
+        'Revision requests are handled per order. Open the order in the Orders tab and leave a note there — this preview does not send anything.',
+        [{ text: 'OK' }]
       );
     } else {
-      Alert.alert('Request Revision', 'Our production designers have been notified.');
+      Alert.alert('Sample proof', 'Revision requests are handled per order in the Orders tab. This preview does not send anything.');
     }
   }, []);
 
@@ -102,12 +102,12 @@ export default function DesignProofScreen() {
         <View style={styles.metaRow}>
           <View>
             <AppText style={styles.orderNum} weight="bold">
-              ORDER #10294
+              SAMPLE PROOF
             </AppText>
-            <AppText style={styles.orderProduct}>Premium Metal NFC Card</AppText>
+            <AppText style={styles.orderProduct}>Preview of your card design</AppText>
           </View>
           <View style={styles.proofBadge}>
-            <AppText style={styles.proofBadgeText}>AWAITING APPROVAL</AppText>
+            <AppText style={styles.proofBadgeText}>PREVIEW</AppText>
           </View>
         </View>
 
@@ -166,9 +166,9 @@ export default function DesignProofScreen() {
 
                 <View style={styles.proofCenter}>
                   <AppText style={styles.engravedHolder} weight="bold">
-                    THEAN COC
+                    {cardName}
                   </AppText>
-                  <AppText style={styles.engravedRole}>IT Support · Metfone</AppText>
+                  {cardRole ? <AppText style={styles.engravedRole}>{cardRole}</AppText> : null}
                 </View>
 
                 <View style={styles.proofBottom}>
@@ -181,7 +181,7 @@ export default function DesignProofScreen() {
                   <View style={styles.qrProof}>
                     <AppIcon name="QrCode" size={64} color="#FFFFFF" />
                   </View>
-                  <AppText style={styles.backUrl}>sitehub.me/u/thean</AppText>
+                  <AppText style={styles.backUrl}>{cardSlugLine}</AppText>
                 </View>
 
                 <View style={styles.proofBottom}>
@@ -228,14 +228,12 @@ export default function DesignProofScreen() {
             style={({ pressed }) => [
               styles.approveBtn,
               pressed && styles.btnPressed,
-              approved && { backgroundColor: C.success },
             ]}
             onPress={handleApprove}
-            disabled={approved}
           >
-            <AppIcon name={approved ? 'Check' : 'ShieldCheck'} size={18} color="#FFFFFF" />
+            <AppIcon name="ShieldCheck" size={18} color="#FFFFFF" />
             <AppText style={styles.approveBtnText} weight="bold">
-              {approved ? 'Proof Approved ✓' : 'Approve Proof & Start Production'}
+              Approve in the Orders tab
             </AppText>
           </Pressable>
 

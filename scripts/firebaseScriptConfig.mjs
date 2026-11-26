@@ -50,7 +50,7 @@ export const demoCredentials = {
   qaEmail: read('SITEHUB_QA_EMAIL', 'qa@demo.com'),
   shippingEmail: read('SITEHUB_SHIPPING_EMAIL', 'shipping@demo.com'),
   customerEmail: read('SITEHUB_CUSTOMER_EMAIL', 'customer@demo.com'),
-  superAdminEmail: read('SITEHUB_SUPER_ADMIN_EMAIL', 'theancoc69@gmail.com'),
+  superAdminEmail: read('SITEHUB_SUPER_ADMIN_EMAIL'),
   superAdminPassword: read('SITEHUB_SUPER_ADMIN_PASSWORD', read('SITEHUB_DEMO_PASSWORD', '')),
 };
 

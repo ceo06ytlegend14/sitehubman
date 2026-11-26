@@ -5,8 +5,11 @@
  * Uses HMAC-SHA256 with rotating secrets for tamper-proof NFC payloads.
  */
 
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import CryptoJS from 'crypto-js';
 import * as Crypto from 'expo-crypto';
+import { PUBLIC_PROFILE_HOST } from '@/src/constants/publicProfile';
+import { db } from '@/src/services/firebaseClient';
 
 // Secret key rotation period (30 days)
 const SECRET_ROTATION_DAYS = 30;
@@ -67,7 +70,7 @@ export async function encryptNfcUrl(cardId: string): Promise<string> {
   const encodedPayload = btoa(JSON.stringify(payload));
   
   // Generate secure URL
-  const baseUrl = process.env.EXPO_PUBLIC_APP_URL || 'https://sitehub.app';
+  const baseUrl = (process.env.EXPO_PUBLIC_APP_URL || PUBLIC_PROFILE_HOST).replace(/\/+$/, '');
   return `${baseUrl}/c/${cardId}?s=${encodedPayload}`;
 }
 
@@ -193,20 +196,19 @@ export async function detectNfcClone(
 export async function registerNfcTag(
   uid: string,
   cardId: string,
-  userId: string,
-  db: any
-): Promise<void> {
+  userId: string
+): Promise<string> {
   const uidHash = await generateNfcUidHash(uid);
-  
-  await db.collection('nfc_tags').add({
+  const ref = await addDoc(collection(db, 'nfc_tags'), {
     uidHash,
     cardId,
     userId,
     uid: uid.slice(-8), // Store only last 8 chars for privacy
     writtenAt: new Date().toISOString(),
     version: 'v1',
-    createdAt: db.FieldValue.serverTimestamp(),
+    createdAt: serverTimestamp(),
   });
+  return ref.id;
 }
 
 /**

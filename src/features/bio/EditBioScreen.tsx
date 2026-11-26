@@ -1,14 +1,14 @@
 /**
- * EditBioScreen.tsx — Ban Nguyen Business Specification Bio Profile Editor.
+ * EditBioScreen.tsx — Public bio / tap-page editor.
  *
- * Full implementation of Ban Nguyen's exact business specifications:
- *  1. Danh tính (Identity): Printed Name, Handle/Slug, Multilingual Job Titles (VI/EN), Organization, Positioning Lines (VI/EN), Email, Photo, Logo.
- *  2. Trang tap (Tap Page Content): Hero Titles (VI/EN), Hero Org, VI/EN Language Toggle switch, Primary Action (Icon, VI/EN Labels, VI/EN Sublines, Link), 3 Action Blocks with up to 4 items each.
- *  3. Khối tin cậy (Trust Footnote): Owner Line (VI/EN), Trust Note (VI/EN).
- *  4. Giao diện trang tap (Appearance Settings): Color Palette, Light/Dark Mode, Border Radius, Hero Style, Card Style, Avatar Style.
- *  5. "Khôi phục nội dung mẫu": Reset to Ban Nguyen sample seed preset.
+ * Sections:
+ *  1. Identity: Printed Name, Handle/Slug, Multilingual Job Titles (VI/EN), Organization, Positioning Lines (VI/EN), Email, Photo, Logo.
+ *  2. Tap Page Content: Hero Titles (VI/EN), Hero Org, VI/EN Language Toggle, Primary Action (Icon, VI/EN Labels, VI/EN Sublines, Link), 3 Action Blocks with up to 4 items each.
+ *  3. Trust Footnote: Owner Line (VI/EN), Trust Note (VI/EN).
+ *  4. Appearance: Color Palette, Light/Dark Mode, Border Radius, Hero Style, Card Style, Avatar Style.
  */
 import React, { useEffect, useRef, useState } from 'react';
+import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import {
   Alert,
   Image,
@@ -32,7 +32,6 @@ import { useBioPage } from '@/src/hooks/useBioPage';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { uploadProfilePhoto } from '@/src/services/profilePhotoService';
 import type { BioPage, TapActionBlock, TapActionItem } from '@/src/types/models';
-import { BAN_NGUYEN_SEED_BIO } from '@/src/data/seedBanNguyenBio';
 import { HapticTap } from '@/src/utils/haptics';
 
 // ─── Field Row Component ───────────────────────────────────────────────────
@@ -141,37 +140,37 @@ export function EditBioScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
-  // Load existing bio data or load seed defaults
+  // Load existing bio data, or start from a blank profile
   useEffect(() => {
-    const data = bioPage ?? (BAN_NGUYEN_SEED_BIO as BioPage);
-    setDisplayName(data.displayName ?? 'Ban Nguyen');
-    setPrintedName(data.printedName ?? data.displayName ?? 'Ban Nguyen');
-    setSlug(data.slug ?? 'pandev00');
-    setJobTitleVi(data.jobTitleVi ?? 'Tech Lead · AI Coaching 1-1');
-    setJobTitleEn(data.jobTitleEn ?? 'Tech Lead · 1-1 AI Coaching');
-    setOrganization(data.organization ?? data.company ?? 'SAGOZEN LLC');
-    setPositioningLineVi(data.positioningLineVi ?? data.tagline ?? 'AI Coaching 1-1 — làm phần mềm bài bản');
-    setPositioningLineEn(data.positioningLineEn ?? '1-1 AI Coaching — build software properly');
-    setEmail(data.email ?? 'pandev00@sagozen.digital');
+    const data = bioPage ?? ({} as BioPage);
+    setDisplayName(data.displayName ?? '');
+    setPrintedName(data.printedName ?? data.displayName ?? '');
+    setSlug(data.slug ?? '');
+    setJobTitleVi(data.jobTitleVi ?? '');
+    setJobTitleEn(data.jobTitleEn ?? '');
+    setOrganization(data.organization ?? data.company ?? '');
+    setPositioningLineVi(data.positioningLineVi ?? data.tagline ?? '');
+    setPositioningLineEn(data.positioningLineEn ?? '');
+    setEmail(data.email ?? '');
     setPhotoUrl(data.photoUrl);
     setLogoUrl(data.logoUrl);
 
-    setHeroTitleVi(data.heroTitleVi ?? data.jobTitleVi ?? 'Tech Lead · AI Coaching 1-1');
-    setHeroTitleEn(data.heroTitleEn ?? data.jobTitleEn ?? 'Tech Lead · 1-1 AI Coaching');
-    setHeroOrg(data.heroOrg ?? data.organization ?? 'SAGOZEN LLC');
+    setHeroTitleVi(data.heroTitleVi ?? data.jobTitleVi ?? '');
+    setHeroTitleEn(data.heroTitleEn ?? data.jobTitleEn ?? '');
+    setHeroOrg(data.heroOrg ?? data.organization ?? '');
     setShowLanguageToggle(data.showLanguageToggle ?? true);
 
     setPrimaryActionIcon(data.primaryActionIcon ?? 'file-text');
-    setPrimaryActionLabelVi(data.primaryActionLabelVi ?? 'Xem khoá AI Coaching 1-1');
-    setPrimaryActionLabelEn(data.primaryActionLabelEn ?? 'See the 1-1 AI Coaching programme');
-    setPrimaryActionSubVi(data.primaryActionSubVi ?? 'Lộ trình 9 bước · học phí theo đợt');
-    setPrimaryActionSubEn(data.primaryActionSubEn ?? 'Nine stages · paid in stages');
-    setPrimaryActionUrl(data.primaryActionUrl ?? 'https://t.me/pandev00');
+    setPrimaryActionLabelVi(data.primaryActionLabelVi ?? '');
+    setPrimaryActionLabelEn(data.primaryActionLabelEn ?? '');
+    setPrimaryActionSubVi(data.primaryActionSubVi ?? '');
+    setPrimaryActionSubEn(data.primaryActionSubEn ?? '');
+    setPrimaryActionUrl(data.primaryActionUrl ?? '');
 
-    setActionBlocks(data.actionBlocks?.length ? data.actionBlocks : BAN_NGUYEN_SEED_BIO.actionBlocks ?? []);
+    setActionBlocks(data.actionBlocks ?? []);
 
-    setOwnerLineVi(data.ownerLineVi ?? 'Nội dung do Ban Nguyen cung cấp.');
-    setOwnerLineEn(data.ownerLineEn ?? 'Content provided by Ban Nguyen.');
+    setOwnerLineVi(data.ownerLineVi ?? 'Nội dung do chủ trang cung cấp.');
+    setOwnerLineEn(data.ownerLineEn ?? 'Content provided by the profile owner.');
     setTrustNoteVi(data.trustNoteVi ?? 'Avio lưu trữ trang này và không xác minh danh tính.');
     setTrustNoteEn(data.trustNoteEn ?? 'Avio hosts this page and does not verify identity.');
 
@@ -182,49 +181,6 @@ export function EditBioScreen() {
     setCardStyle(data.cardStyle ?? 'bordered');
     setAvatarStyle(data.avatarStyle ?? 'circle');
   }, [bioPage]);
-
-  // Seed Reset Helper
-  function handleLoadSeedPreset() {
-    HapticTap.medium();
-    const seed = BAN_NGUYEN_SEED_BIO;
-    setDisplayName(seed.displayName ?? '');
-    setPrintedName(seed.printedName ?? '');
-    setSlug(seed.slug ?? '');
-    setJobTitleVi(seed.jobTitleVi ?? '');
-    setJobTitleEn(seed.jobTitleEn ?? '');
-    setOrganization(seed.organization ?? '');
-    setPositioningLineVi(seed.positioningLineVi ?? '');
-    setPositioningLineEn(seed.positioningLineEn ?? '');
-    setEmail(seed.email ?? '');
-    setPhotoUrl(seed.photoUrl);
-
-    setHeroTitleVi(seed.heroTitleVi ?? '');
-    setHeroTitleEn(seed.heroTitleEn ?? '');
-    setHeroOrg(seed.heroOrg ?? '');
-    setShowLanguageToggle(seed.showLanguageToggle ?? true);
-
-    setPrimaryActionIcon(seed.primaryActionIcon ?? 'file-text');
-    setPrimaryActionLabelVi(seed.primaryActionLabelVi ?? '');
-    setPrimaryActionLabelEn(seed.primaryActionLabelEn ?? '');
-    setPrimaryActionSubVi(seed.primaryActionSubVi ?? '');
-    setPrimaryActionSubEn(seed.primaryActionSubEn ?? '');
-    setPrimaryActionUrl(seed.primaryActionUrl ?? '');
-
-    setActionBlocks(seed.actionBlocks ?? []);
-
-    setOwnerLineVi(seed.ownerLineVi ?? '');
-    setOwnerLineEn(seed.ownerLineEn ?? '');
-    setTrustNoteVi(seed.trustNoteVi ?? '');
-    setTrustNoteEn(seed.trustNoteEn ?? '');
-
-    setColorPalette(seed.colorPalette ?? 'Professional');
-    setColorMode(seed.colorMode ?? 'dark');
-    setBorderRadiusStyle(seed.borderRadiusStyle ?? 'balanced');
-    setHeroStyle(seed.heroStyle ?? 'gradient');
-    setCardStyle(seed.cardStyle ?? 'bordered');
-    setAvatarStyle(seed.avatarStyle ?? 'circle');
-    Alert.alert('Khôi phục thành công', 'Đã tải dữ liệu mẫu của Ban Nguyen.');
-  }
 
   // Helper for Action Blocks
   function updateBlockTitle(bIndex: number, vi: string, en: string) {
@@ -346,8 +302,8 @@ export function EditBioScreen() {
       await saveBioPage({
         displayName: displayName.trim(),
         printedName: printedName.trim() || displayName.trim(),
-        slug: slug.trim().toLowerCase() || 'pandev00',
-        publicSlug: slug.trim().toLowerCase() || 'pandev00',
+        slug: slug.trim().toLowerCase(),
+        publicSlug: slug.trim().toLowerCase(),
         jobTitleVi: jobTitleVi.trim(),
         jobTitleEn: jobTitleEn.trim(),
         organization: organization.trim(),
@@ -441,16 +397,16 @@ export function EditBioScreen() {
 
           <View style={styles.previewMeta}>
             <AppText style={styles.previewName} weight="extrabold">
-              {displayName || 'Ban Nguyen'}
+              {displayName || 'Your name'}
             </AppText>
             <AppText style={styles.previewSub}>
-              {jobTitleVi || 'Tech Lead · AI Coaching 1-1'}
+              {jobTitleVi || 'Your job title'}
             </AppText>
             <AppText style={styles.previewOrg}>
-              {organization || 'SAGOZEN LLC'}
+              {organization || 'Your organization'}
             </AppText>
             <AppText style={styles.previewSlug}>
-              sitehubman.app/{slug || 'pandev00'}
+              {buildSlugProfileUrl(slug || 'your-slug').replace(/^https?:\/\//, '')}
             </AppText>
           </View>
         </View>
@@ -469,7 +425,7 @@ export function EditBioScreen() {
               setDisplayName(t);
               setPrintedName(t);
             }}
-            placeholder="Ban Nguyen"
+            placeholder="Jane Doe"
             autoCapitalize="words"
           />
           <FieldRow
@@ -477,7 +433,7 @@ export function EditBioScreen() {
             label="Handle / Slug"
             value={slug}
             onChangeText={setSlug}
-            placeholder="pandev00"
+            placeholder="jane-doe"
             autoCapitalize="none"
           />
           <FieldRow
@@ -485,42 +441,42 @@ export function EditBioScreen() {
             label="Chức danh (VI)*"
             value={jobTitleVi}
             onChangeText={setJobTitleVi}
-            placeholder="Tech Lead · AI Coaching 1-1"
+            placeholder="Founder & CEO"
           />
           <FieldRow
             icon="Briefcase"
             label="Chức danh (EN)*"
             value={jobTitleEn}
             onChangeText={setJobTitleEn}
-            placeholder="Tech Lead · 1-1 AI Coaching"
+            placeholder="Founder & CEO"
           />
           <FieldRow
             icon="Globe"
             label="Tổ chức"
             value={organization}
             onChangeText={setOrganization}
-            placeholder="SAGOZEN LLC"
+            placeholder="Acme LLC"
           />
           <FieldRow
             icon="Award"
             label="Dòng định vị (VI)"
             value={positioningLineVi}
             onChangeText={setPositioningLineVi}
-            placeholder="AI Coaching 1-1 — làm phần mềm bài bản"
+            placeholder="One line that describes what you do"
           />
           <FieldRow
             icon="Award"
             label="Dòng định vị (EN)"
             value={positioningLineEn}
             onChangeText={setPositioningLineEn}
-            placeholder="1-1 AI Coaching — build software properly"
+            placeholder="One line that describes what you do"
           />
           <FieldRow
             icon="Mail"
             label="Email*"
             value={email}
             onChangeText={setEmail}
-            placeholder="pandev00@sagozen.digital"
+            placeholder="jane@example.com"
             keyboardType="email-address"
             autoCapitalize="none"
             last
@@ -538,21 +494,21 @@ export function EditBioScreen() {
             label="Hero Title (VI)*"
             value={heroTitleVi}
             onChangeText={setHeroTitleVi}
-            placeholder="Tech Lead · AI Coaching 1-1"
+            placeholder="Founder & CEO"
           />
           <FieldRow
             icon="Briefcase"
             label="Hero Title (EN)"
             value={heroTitleEn}
             onChangeText={setHeroTitleEn}
-            placeholder="Tech Lead · 1-1 AI Coaching"
+            placeholder="Founder & CEO"
           />
           <FieldRow
             icon="Globe"
             label="Hero Organization"
             value={heroOrg}
             onChangeText={setHeroOrg}
-            placeholder="SAGOZEN LLC"
+            placeholder="Acme LLC"
             last
           />
         </FieldGroup>
@@ -611,7 +567,7 @@ export function EditBioScreen() {
             label="Liên kết (URL)*"
             value={primaryActionUrl}
             onChangeText={setPrimaryActionUrl}
-            placeholder="https://t.me/pandev00"
+            placeholder="https://t.me/jane-doe"
             last
           />
         </FieldGroup>
@@ -709,14 +665,14 @@ export function EditBioScreen() {
                     label="Dòng phụ (VI)"
                     value={item.subVi || ''}
                     onChangeText={(t) => updateActionItem(bIndex, iIndex, { subVi: t })}
-                    placeholder="@pandev00"
+                    placeholder="@jane-doe"
                   />
                   <FieldRow
                     icon="Link"
                     label="Liên kết"
                     value={item.url}
                     onChangeText={(t) => updateActionItem(bIndex, iIndex, { url: t })}
-                    placeholder="https://t.me/pandev00"
+                    placeholder="https://t.me/jane-doe"
                     last
                   />
                 </FieldGroup>
@@ -736,14 +692,14 @@ export function EditBioScreen() {
             label="Chủ sở hữu (VI)"
             value={ownerLineVi}
             onChangeText={setOwnerLineVi}
-            placeholder="Nội dung do Ban Nguyen cung cấp."
+            placeholder="Nội dung do chủ trang cung cấp."
           />
           <FieldRow
             icon="ShieldCheck"
             label="Chủ sở hữu (EN)"
             value={ownerLineEn}
             onChangeText={setOwnerLineEn}
-            placeholder="Content provided by Ban Nguyen."
+            placeholder="Content provided by the profile owner."
           />
           <FieldRow
             icon="Info"
@@ -820,13 +776,6 @@ export function EditBioScreen() {
           </View>
         </View>
 
-        {/* Restore Sample Preset Button */}
-        <Pressable onPress={handleLoadSeedPreset} style={styles.resetSeedBtn}>
-          <AppIcon name="RotateCcw" size={16} color="#FFFFFF" />
-          <AppText style={styles.resetSeedBtnText} weight="extrabold">
-            Khôi phục nội dung mẫu (Ban Nguyen)
-          </AppText>
-        </Pressable>
       </IosScrollView>
     </SafeAreaView>
   );
@@ -1123,20 +1072,5 @@ const styles = StyleSheet.create({
   },
   segmentTextActive: {
     color: '#000000',
-  },
-  resetSeedBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: '#16161A',
-    borderColor: 'rgba(255,255,255,0.15)',
-    marginTop: 12,
-  },
-  resetSeedBtnText: {
-    color: '#FFFFFF',
-    fontSize: 13,
   },
 });

@@ -117,19 +117,11 @@ export function getAuthErrorMessage(error: unknown): string {
 /** Alias for guest/checkout screens — never surfaces raw backend errors. */
 export const getCustomerErrorMessage = getAuthErrorMessage;
 
-function inferRoleFromEmail(email?: string): UserRole | null {
-  if (!email) return null;
-  const em = email.toLowerCase().trim();
-  if (em === 'admin@sitehub.app' || em === 'admin@avio.app' || em === 'admin@demo.com') return 'super_admin';
-  if (em === 'sales@sitehub.app' || em === 'sales@avio.app' || em === 'sales@demo.com') return 'sales';
-  if (em === 'alexander@sitehub.app' || em === 'customer@sitehub.app' || em === 'customer@avio.app' || em === 'customer@demo.com') return 'customer';
-  return null;
-}
-
 function mapUser(id: string, data: any): AppUser {
   const email = data.email ?? '';
-  const inferredRole = inferRoleFromEmail(email);
-  const role = inferredRole || normalizeRole(data.role);
+  // Roles come only from the users collection. Never infer privilege from an email
+  // address — anyone can register one, and the claim must be provisioned server-side.
+  const role = normalizeRole(data.role);
 
   return {
     id,
@@ -393,7 +385,7 @@ export async function signInAsAnonymousTrial(): Promise<AppUser> {
 
   const profileDoc = {
     email: '',
-    displayName: 'Thean Coc',
+    displayName: 'Guest',
     role: 'customer' as const,
     authType: 'anonymous' as const,
     authProvider: 'anonymous' as const,

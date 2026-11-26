@@ -24,7 +24,7 @@ function createGuestUser(): AppUser {
   return {
     id: 'guest',
     email: '',
-    displayName: 'Thean Coc',
+    displayName: 'Guest',
     role: 'guest',
     language: 'en',
     isActive: true,

@@ -11,38 +11,48 @@ import {
   firebaseConfig,
 } from './firebaseScriptConfig.mjs';
 
+// This seed creates known-credential accounts, so it is restricted to the
+// local emulator unless explicitly overridden for a disposable demo project.
+const ALLOW_LIVE =
+  process.env.SITEHUB_SEED_ALLOW_LIVE === '1' || Boolean(process.env.FIRESTORE_EMULATOR_HOST);
+if (!ALLOW_LIVE) {
+  console.error('REFUSING TO SEED LIVE PROJECT. Set FIRESTORE_EMULATOR_HOST or SITEHUB_SEED_ALLOW_LIVE=1.');
+  process.exit(1);
+}
+
 assertFirebaseScriptConfig();
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const SEED_PASSWORD = 'Password123!';
+// Demo-only password for disposable emulator/test projects — never reuse on production.
+const SEED_PASSWORD = 'DemoSeed-Password123!';
 
 const SEED_ACCOUNTS = [
   {
     email: 'admin@sitehub.app',
     password: SEED_PASSWORD,
-    displayName: 'Alexander Admin',
+    displayName: 'Demo Admin',
     role: 'customer',
     appRole: 'super_admin',
-    title: 'Executive Platform Admin',
+    title: 'Demo Admin Role',
   },
   {
     email: 'sales@sitehub.app',
     password: SEED_PASSWORD,
-    displayName: 'Sarah Sales',
+    displayName: 'Demo Sales',
     role: 'customer',
     appRole: 'sales',
-    title: 'Executive Sales Partner',
+    title: 'Demo Sales Role',
   },
   {
-    email: 'alexander@sitehub.app',
+    email: 'customer@sitehub.app',
     password: SEED_PASSWORD,
-    displayName: 'Alexander Wright',
+    displayName: 'Demo Customer',
     role: 'customer',
     appRole: 'customer',
-    title: 'Founder & Managing Director',
+    title: 'Demo Customer Role',
   },
 ];
 
@@ -96,11 +106,11 @@ async function seedAccount(account) {
         slug: account.displayName.toLowerCase().replace(/\s+/g, '-'),
         publicSlug: account.displayName.toLowerCase().replace(/\s+/g, '-'),
         headline: 'Next-Gen NFC & Digital Identity',
-        bio: `${account.title} at AVIO. Contactless luxury networking.`,
+        bio: `Demo seed bio for ${account.email}. Not a real person.`,
         theme: 'mono',
         email: account.email,
-        phone: '+1 555 019 2834',
-        website: 'https://sitehubman.app',
+        phone: '',
+        website: '',
         updatedAt: serverTimestamp(),
       },
       { merge: true }
@@ -111,7 +121,7 @@ async function seedAccount(account) {
   }
 }
 
-console.log('🚀 Seeding 3 Real Accounts...\n');
+console.log('🚀 Seeding 3 demo accounts...\n');
 for (const acc of SEED_ACCOUNTS) {
   await seedAccount(acc);
 }
@@ -119,18 +129,11 @@ for (const acc of SEED_ACCOUNTS) {
 console.log('\n========================================');
 console.log('🎉 3 REAL SEED ACCOUNTS READY FOR IMMEDIATE USE:');
 console.log('========================================');
-console.log('1️⃣ ADMIN ACCOUNT:');
-console.log('   Email:    admin@sitehub.app');
-console.log('   Password: Password123!');
-console.log('   Role:     Super Admin / HQ Control\n');
-console.log('2️⃣ SALES PARTNER ACCOUNT:');
-console.log('   Email:    sales@sitehub.app');
-console.log('   Password: Password123!');
-console.log('   Role:     Sales Executive\n');
-console.log('3️⃣ CUSTOMER / MEMBER ACCOUNT:');
-console.log('   Email:    alexander@sitehub.app');
-console.log('   Password: Password123!');
-console.log('   Role:     Pro Customer (Alexander Wright)');
+console.log('Demo accounts (roles in Firestore are all "customer"):');
+for (const acc of SEED_ACCOUNTS) {
+  console.log(`   ${acc.email} / ${SEED_PASSWORD} (${acc.displayName})`);
+}
+console.log('Privileged roles must be granted by a trusted admin flow, never by this script.');
 console.log('========================================\n');
 
 process.exit(0);

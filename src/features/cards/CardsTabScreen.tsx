@@ -21,8 +21,12 @@ import { HapticTap, Haptics } from '@/src/utils/haptics';
 import { InteractivePressable } from '@/src/components/InteractivePressable';
 import { PhysicalHardwareCardGraphic, HardwareCardType } from '@/src/components/PhysicalHardwareCardGraphic';
 import { useAuth } from '@/src/hooks/useAuth';
-import { buildSlugProfileUrl, PUBLIC_PROFILE_HOST } from '@/src/constants/publicProfile';
+import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import { useBioPage } from '@/src/hooks/useBioPage';
+import { useEffect } from 'react';
+import { collection, getDocs, limit, query, where } from 'firebase/firestore';
+import { db } from '@/src/services/firebaseClient';
+import { firebaseCollections } from '@/src/constants/collections';
 
 const C = {
   canvas: '#000000',
@@ -43,71 +47,83 @@ type CardItem = {
   title: string;
   slug: string;
   nfcLinked: boolean;
-  taps: number;
+  taps: number | null;
   active: boolean;
-  materialName: string;
-  serialNumber: string;
+  materialName?: string;
   description: string;
 };
-
-const INITIAL_CARDS: CardItem[] = [
-  {
-    id: '1',
-    hardwareType: 'metal_card',
-    cardholderName: 'BAN NGUYEN',
-    companyName: 'AVIO NETWORK',
-    title: 'Managing Director · Global Operations',
-    slug: 'ban-nguyen',
-    nfcLinked: true,
-    taps: 326,
-    active: true,
-    materialName: 'AEROSPACE 304 STEEL',
-    serialNumber: 'SN // 894-304M',
-    description: 'Direct contact pass, portfolio links & encrypted business profile.',
-  },
-  {
-    id: '2',
-    hardwareType: 'custom_card',
-    cardholderName: 'BAN NGUYEN',
-    companyName: 'AVIO BESPOKE',
-    title: 'Principal Designer & Strategist',
-    slug: 'ban-bespoke',
-    nfcLinked: true,
-    taps: 112,
-    active: false,
-    materialName: 'BESPOKE CNC CARBON',
-    serialNumber: 'SN // 412-CRB9',
-    description: 'Design consulting showcase, portfolio & direct booking card.',
-  },
-  {
-    id: '3',
-    hardwareType: 'premium_card',
-    cardholderName: 'BAN NGUYEN',
-    companyName: 'AVIO FOUNDERS',
-    title: 'Private Investor & Member',
-    slug: 'ban-investor',
-    nfcLinked: false,
-    taps: 48,
-    active: false,
-    materialName: 'SOLID RAW BRASS',
-    serialNumber: 'SN // 084-GLD2',
-    description: 'VIP investor pass and confidential deal flow link.',
-  },
-];
 
 export default function CardsTabScreen() {
   const { user } = useAuth();
   const { bioPage } = useBioPage(user?.id ?? '');
   const [selectedCardForModal, setSelectedCardForModal] = useState<CardItem | null>(null);
 
-  const [cards, setCards] = useState<CardItem[]>(() => {
-    const ownerName = (bioPage?.displayName || user?.displayName || 'Ban Nguyen').toUpperCase();
-    return INITIAL_CARDS.map((c) => ({
-      ...c,
-      cardholderName: ownerName,
-      slug: bioPage?.slug || c.slug,
-    }));
-  });
+  const ownerName = (bioPage?.displayName || user?.displayName || 'Your name').toUpperCase();
+  const profileCompany = bioPage?.company || bioPage?.organization || 'AVIO';
+  const profileTitle = bioPage?.tagline || bioPage?.headline || '';
+  const profileSlug = bioPage?.slug || '';
+  const profileTaps = typeof bioPage?.taps === 'number' ? bioPage.taps : null;
+
+  const [cards, setCards] = useState<CardItem[]>([]);
+  const [cardsLoaded, setCardsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const snap = await getDocs(
+          query(collection(db, firebaseCollections.cards), where('userId', '==', user.id), limit(20))
+        );
+        if (cancelled) return;
+        const real: CardItem[] = snap.docs.map((entry) => {
+          const data = entry.data() as Record<string, any>;
+          const profile = (data.profile && typeof data.profile === 'object' ? data.profile : {}) as Record<string, any>;
+          const status = String(data.status ?? '');
+          return {
+            id: entry.id,
+            hardwareType: (data.cardDesign as HardwareCardType) || 'pvc_card',
+            cardholderName: String(profile.fullName ?? profile.displayName ?? ownerName).toUpperCase(),
+            companyName: String(profile.company ?? profile.organization ?? profileCompany),
+            title: String(profile.jobTitle ?? profile.tagline ?? profileTitle),
+            slug: String(data.publicSlug ?? data.slug ?? profileSlug),
+            nfcLinked: status === 'published' || status === 'active' || status === 'encoded',
+            taps: null,
+            active: false,
+            description: 'Ordered card linked to your profile.',
+          };
+        });
+        if (real.length > 0) {
+          real[0] = { ...real[0], active: true };
+          setCards(real);
+          setCardsLoaded(true);
+          return;
+        }
+      } catch (error) {
+        console.warn('[CardsTab] Could not load ordered cards', error);
+      }
+      if (cancelled) return;
+      // No ordered hardware on file — present the user's virtual pass, which actually exists.
+      setCards([
+        {
+          id: 'virtual-pass',
+          hardwareType: 'pvc_card',
+          cardholderName: ownerName,
+          companyName: profileCompany,
+          title: profileTitle || 'Digital business card',
+          slug: profileSlug,
+          nfcLinked: false,
+          taps: profileTaps,
+          active: true,
+          description: 'Your virtual pass. QR and share link map to your live profile.',
+        },
+      ]);
+      setCardsLoaded(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, ownerName, profileCompany, profileTitle, profileSlug, profileTaps]);
 
   const activeCard = useMemo(() => {
     return cards.find((c) => c.active) || cards[0];
@@ -128,6 +144,10 @@ export default function CardsTabScreen() {
 
   const handleShareCard = useCallback(async (card: CardItem) => {
     HapticTap.light();
+    if (!card.slug) {
+      router.push('/edit-bio' as any);
+      return;
+    }
     const url = buildSlugProfileUrl(card.slug);
     try {
       await Share.share({
@@ -209,6 +229,9 @@ export default function CardsTabScreen() {
         </View>
 
         {/* Apple Wallet Style Physical Cards (Subtle hairline edges) */}
+        {!cardsLoaded ? (
+          <AppText style={styles.sectionSub}>Loading your cards…</AppText>
+        ) : null}
         {cards.map((card) => {
           return (
             <Pressable
@@ -266,10 +289,14 @@ export default function CardsTabScreen() {
                         {card.nfcLinked ? 'NFC Encoded' : 'Virtual Pass'}
                       </AppText>
                     </View>
-                    <AppText style={styles.dotSeparator}>·</AppText>
-                    <AppText style={styles.tapsText}>
-                      {card.taps} taps
-                    </AppText>
+                    {typeof card.taps === 'number' ? (
+                      <>
+                        <AppText style={styles.dotSeparator}>·</AppText>
+                        <AppText style={styles.tapsText}>
+                          {card.taps} taps
+                        </AppText>
+                      </>
+                    ) : null}
                   </View>
 
                   <View style={styles.viewDetailsRow}>
@@ -333,7 +360,8 @@ export default function CardsTabScreen() {
                   {selectedCardForModal?.companyName}
                 </AppText>
                 <AppText style={styles.modalSub}>
-                  {selectedCardForModal?.cardholderName} · {selectedCardForModal?.materialName}
+                  {selectedCardForModal?.cardholderName}
+                  {selectedCardForModal?.materialName ? ` · ${selectedCardForModal.materialName}` : ''}
                 </AppText>
               </View>
               <Pressable
@@ -347,7 +375,7 @@ export default function CardsTabScreen() {
 
             {/* High Contrast QR Code Canvas */}
             <View style={styles.qrContainer}>
-              {selectedCardForModal && (
+              {selectedCardForModal?.slug ? (
                 <View style={styles.qrWhiteBox}>
                   <QRCode
                     value={buildSlugProfileUrl(selectedCardForModal.slug)}
@@ -356,33 +384,33 @@ export default function CardsTabScreen() {
                     backgroundColor="#FFFFFF"
                   />
                 </View>
+              ) : (
+                <AppText style={styles.qrInstructions}>Create your public profile to generate a QR link.</AppText>
               )}
               <AppText style={styles.qrInstructions} weight="medium">
                 Point any phone camera to instantly scan & exchange contacts
               </AppText>
               <AppText style={styles.qrUrlText} numberOfLines={1}>
-                {selectedCardForModal ? buildSlugProfileUrl(selectedCardForModal.slug) : ''}
+                {selectedCardForModal?.slug ? buildSlugProfileUrl(selectedCardForModal.slug) : ''}
               </AppText>
             </View>
 
             {/* Profile Detail Specs */}
             <View style={styles.detailsGroup}>
               <View style={styles.detailRow}>
-                <AppText style={styles.detailLabel}>NFC Silicon</AppText>
-                <AppText style={styles.detailVal} weight="medium">NTAG216 (13.56 MHz ISO/IEC)</AppText>
-              </View>
-              <View style={styles.detailRow}>
                 <AppText style={styles.detailLabel}>Card Status</AppText>
                 <AppText style={styles.detailValSage} weight="semibold">
-                  {selectedCardForModal?.nfcLinked ? 'Active · NFC Linked' : 'Virtual Pass'}
+                  {selectedCardForModal?.nfcLinked ? 'NFC Linked' : 'Virtual Pass'}
                 </AppText>
               </View>
-              <View style={styles.detailRow}>
-                <AppText style={styles.detailLabel}>Taps / Scans</AppText>
-                <AppText style={styles.detailVal} weight="medium">
-                  {selectedCardForModal?.taps} scans recorded
-                </AppText>
-              </View>
+              {typeof selectedCardForModal?.taps === 'number' ? (
+                <View style={styles.detailRow}>
+                  <AppText style={styles.detailLabel}>Taps / Scans</AppText>
+                  <AppText style={styles.detailVal} weight="medium">
+                    {selectedCardForModal.taps} taps recorded
+                  </AppText>
+                </View>
+              ) : null}
             </View>
 
             {/* Actions Footer */}

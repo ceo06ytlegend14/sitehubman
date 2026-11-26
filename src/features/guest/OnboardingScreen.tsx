@@ -1,9 +1,9 @@
 /**
- * OnboardingScreen — 3-Step First-Time User Onboarding Flow
+ * OnboardingScreen â€” 3-Step First-Time User Onboarding Flow
  *
- * Step 1: Welcome      — Brand intro with AVIO value prop
- * Step 2: Name & Role  — Set up identity (name required, email + role optional)
- * Step 3: Your Card    — Real live card preview + CTA to create account
+ * Step 1: Welcome      â€” Brand intro with AVIO value prop
+ * Step 2: Name & Role  â€” Set up identity (name required, email + role optional)
+ * Step 3: Your Card    â€” Real live card preview + CTA to create account
  *
  * On finish ? navigates to /auth/register with name + email pre-filled.
  * On skip   ? navigates to / as guest.
@@ -38,7 +38,7 @@ const STEPS = [
     eyebrow: 'WELCOME TO AVIO',
     title: 'Your identity.\nIn one tap.',
     subtitle:
-      'Share your name, contacts, socials, and story — all from a single NFC smart pass. Works with any phone, no app needed.',
+      'Share your name, contacts, socials, and story â€” all from a single NFC smart pass. Works with any phone, no app needed.',
     icon: 'Nfc' as const,
   },
   {
@@ -227,7 +227,7 @@ export function OnboardingScreen() {
                       setDisplayName(v);
                       if (v.trim()) setNameError('');
                     }}
-                    placeholder="Alex Wright"
+                    placeholder="Jane Doe"
                     placeholderTextColor="rgba(255, 255, 255, 0.3)"
                     autoCapitalize="words"
                     autoFocus
@@ -255,11 +255,11 @@ export function OnboardingScreen() {
                   />
                 </View>
 
-                {/* Email (optional — pre-fills register) */}
+                {/* Email (optional â€” pre-fills register) */}
                 <View style={styles.fieldWrap}>
                   <AppText style={styles.fieldLabel} weight="bold">
                     Email{' '}
-                    <Text style={styles.optional}>(optional — saves time later)</Text>
+                    <Text style={styles.optional}>(optional â€” saves time later)</Text>
                   </AppText>
                   <TextInput
                     style={styles.fieldInput}
@@ -295,8 +295,8 @@ export function OnboardingScreen() {
                   {[
                     { icon: 'Cloud'     as const, text: 'Card saved to your account'         },
                     { icon: 'BarChart2' as const, text: 'Track every tap & view in real time' },
-                    { icon: 'Link'      as const, text: 'Your own link: aviobrand.com/you'    },
-                    { icon: 'Shield'    as const, text: 'Free forever — no credit card'       },
+                    { icon: 'Link'      as const, text: 'Your own link: sitehub-8dd56.web.app/c/you'    },
+                    { icon: 'Shield'    as const, text: 'Free forever â€” no credit card'       },
                   ].map((b) => (
                     <View key={b.text} style={styles.benefitRow}>
                       <View style={styles.benefitIcon}>
@@ -341,7 +341,7 @@ export function OnboardingScreen() {
         {isLastStep && (
           <Pressable onPress={handleSkip} style={styles.laterBtn} hitSlop={10}>
             <AppText style={styles.laterText}>
-              Maybe later — continue as guest
+              Maybe later â€” continue as guest
             </AppText>
           </Pressable>
         )}

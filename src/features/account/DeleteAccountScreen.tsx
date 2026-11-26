@@ -116,7 +116,7 @@ export default function DeleteAccountScreen() {
           <View style={styles.itemRow}>
             <AppIcon name="Check" size={16} color={C.danger} />
             <AppText style={styles.itemText}>
-              All digital cards and public URL links (e.g. sitehub.me/u/thean)
+              All digital cards and public URL links (e.g. sitehub-8dd56.web.app/c/your-handle)
             </AppText>
           </View>
 

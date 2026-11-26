@@ -18,8 +18,8 @@ interface PhysicalHardwareCardGraphicProps {
 export function PhysicalHardwareCardGraphic({
   type,
   size = 'sm',
-  cardholderName = 'ALEXANDER WRIGHT',
-  companyName = 'NFC GLOBAL',
+  cardholderName = 'CARD HOLDER',
+  companyName = 'AVIO',
   style,
 }: PhysicalHardwareCardGraphicProps) {
   const isSm = size === 'sm';

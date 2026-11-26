@@ -44,7 +44,7 @@ type RouteOption = {
 const ROUTE_OPTIONS: RouteOption[] = [
   { id: 'profile', name: 'Digital Profile (Default)', sub: 'Opens your full multi-link landing page', icon: 'globe' },
   { id: 'whatsapp', name: 'Direct WhatsApp', sub: 'Opens chat directly: +1 (555) 234-5678', icon: 'message-circle' },
-  { id: 'linkedin', name: 'LinkedIn Profile', sub: 'Opens linkedin.com/in/thean', icon: 'user' },
+  { id: 'linkedin', name: 'LinkedIn Profile', sub: 'Opens linkedin.com/in/your-handle', icon: 'user' },
   { id: 'website', name: 'Company Website', sub: 'Opens your primary business domain', icon: 'external-link' },
   { id: 'contact', name: 'Instant vCard Download', sub: 'Prompts receiver to save contact immediately', icon: 'download' },
 ];

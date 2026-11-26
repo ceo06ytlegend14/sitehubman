@@ -40,7 +40,7 @@ import {
 export interface MomentDetailSheetProps {
   visible: boolean;
   moment: TapMoment | null;
-  /** Pre-resolved slug URL (e.g. https://sitehub.app/sok-dara). Null = no URL yet. */
+  /** Pre-resolved slug URL (e.g. https://sitehub-8dd56.web.app/your-slug). Null = no URL yet. */
   slugUrl: string | null;
   /** Current tags assigned to this moment. */
   tags?: ConnectionTagId[];

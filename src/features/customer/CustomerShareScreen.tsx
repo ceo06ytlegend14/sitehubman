@@ -146,17 +146,22 @@ export function CustomerShareScreen() {
   const displayName =
     bioPage?.displayName?.trim() ||
     user?.displayName?.trim() ||
-    (isGuest ? 'Alexander Wright' : 'Your Card');
-  const title = bioPage?.tagline?.trim() || (isGuest ? 'Executive Pass · AVIO OS' : 'Digital identity');
+    (isGuest ? 'Guest' : 'Your Card');
+  const title = bioPage?.tagline?.trim() || 'Digital identity';
 
-  const profileUrl = useMemo(() => {
-    if (bioPage?.slug) return buildSlugProfileUrl(bioPage.slug);
-    if (isGuest) return buildSlugProfileUrl('alexander-wright');
-    return 'https://sitehubman.app/alexander';
-  }, [isGuest, bioPage?.slug]);
+  const profileUrl = useMemo(() => (bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : ''), [bioPage?.slug]);
+
+  const requireProfileUrl = () => {
+    if (!profileUrl) {
+      router.push('/edit-bio' as any);
+      return false;
+    }
+    return true;
+  };
 
   async function handleShare() {
     HapticTap.medium();
+    if (!requireProfileUrl()) return;
     await Share.share({
       message: `${displayName} • Contact Pass\n${profileUrl}`,
       url: profileUrl,
@@ -165,6 +170,7 @@ export function CustomerShareScreen() {
 
   const handleCopy = () => {
     HapticTap.light();
+    if (!requireProfileUrl()) return;
     setIsCopied(true);
     void Share.share({ message: profileUrl, url: profileUrl });
     setTimeout(() => setIsCopied(false), 2000);
@@ -356,7 +362,7 @@ export function CustomerShareScreen() {
               profileUrl={profileUrl || undefined}
               gradientIndex={cloudCard?.design?.gradientIndex ?? 0}
               backgroundImageUri={cloudCard?.design?.customImageUri || undefined}
-              cardId={cloudCard?.id ?? 'AVIO-8890-7A3F'}
+              cardId={cloudCard?.id ?? ''}
               style={styles.heroCard}
             />
             <AppText style={[styles.flipHint, { color: themeColors.textMuted }]}>Tap card to flip · Contactless NFC active</AppText>
@@ -366,20 +372,24 @@ export function CustomerShareScreen() {
           <Animated.View entering={FadeInUp.springify().delay(200)}>
             <BlurView intensity={isDark ? 20 : 40} tint={isDark ? 'dark' : 'light'} style={[styles.compactQrCard, { borderColor: themeColors.border, backgroundColor: themeColors.cardBg }]}>
               <View style={styles.qrInnerBox}>
-                <QRCode
-                  value={profileUrl}
-                  size={100}
-                  color="#000000"
-                  backgroundColor="#FFFFFF"
-                  quietZone={4}
-                />
+                {profileUrl ? (
+                  <QRCode
+                    value={profileUrl}
+                    size={100}
+                    color="#000000"
+                    backgroundColor="#FFFFFF"
+                    quietZone={4}
+                  />
+                ) : (
+                  <AppIcon name="QrCode" size={40} color="#71717A" />
+                )}
               </View>
               <View style={styles.qrTextInfo}>
                 <View style={[styles.qrBadge, { backgroundColor: themeColors.tint }]}>
                   <AppText style={[styles.qrBadgeText, { color: themeColors.text }]} weight="bold">DYNAMIC QR</AppText>
                 </View>
                 <AppText style={[styles.qrHeaderTitle, { color: themeColors.text }]} weight="bold">Scan to Exchange</AppText>
-                <AppText style={[styles.qrUrlText, { color: themeColors.textMuted }]} numberOfLines={1}>{profileUrl}</AppText>
+                <AppText style={[styles.qrUrlText, { color: themeColors.textMuted }]} numberOfLines={1}>{profileUrl || 'Publish your profile to get a link'}</AppText>
               </View>
             </BlurView>
           </Animated.View>

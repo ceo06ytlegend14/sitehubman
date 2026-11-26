@@ -25,6 +25,7 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { HapticTap } from '@/src/utils/haptics';
+import { PUBLIC_PROFILE_HOST } from '@/src/constants/publicProfile';
 
 const PASS_TIERS = [
   { id: 'obsidian', name: 'Obsidian Matte Steel', finish: 'Laser-Etched Black Metal', grad: ['#222226', '#0E0E10'] },
@@ -39,7 +40,7 @@ export function GuestProfileScreen() {
   const isGuest = useIsGuest();
   const { requireAccount } = useRequireAccount();
 
-  const displayName = user?.displayName?.trim() || 'Alexander Wright';
+  const displayName = user?.displayName?.trim() || 'Your Name';
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -177,7 +178,7 @@ export function GuestProfileScreen() {
                 {[
                   { icon: 'QrCode', title: 'Dynamic QR Code', sub: 'Instant vCard scan for Apple Contacts' },
                   { icon: 'Send', title: 'Telegram CRM Channel', sub: 'Receive leads instantly on Telegram' },
-                  { icon: 'Globe', title: 'Public Bio URL', sub: 'sitehubman.app/alexander' },
+                  { icon: 'Globe', title: 'Public Bio URL', sub: PUBLIC_PROFILE_HOST },
                   { icon: 'Nfc', title: 'Burn to NFC Card', sub: 'Write profile data to physical chip' },
                 ].map((item, idx) => (
                   <Pressable

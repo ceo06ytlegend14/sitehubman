@@ -22,7 +22,7 @@ export interface SeoHeadProps {
   noIndex?: boolean;
 }
 
-const BASE_URL = 'https://aviobrand.com';
+const BASE_URL = (process.env.EXPO_PUBLIC_PROFILE_HOST || 'https://sitehub-8dd56.web.app').replace(/\/+$/, '');
 const DEFAULT_OG_IMAGE = `${BASE_URL}/og-avio.png`;
 const SITE_NAME = 'AVIO';
 

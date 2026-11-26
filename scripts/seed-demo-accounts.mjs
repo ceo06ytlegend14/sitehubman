@@ -8,6 +8,15 @@ import {
   firebaseConfig,
 } from './firebaseScriptConfig.mjs';
 
+// Demo accounts carry known credentials; never create them in the live project
+// unless explicitly allowed (or run against the emulator).
+const ALLOW_LIVE =
+  process.env.SITEHUB_SEED_ALLOW_LIVE === '1' || Boolean(process.env.FIRESTORE_EMULATOR_HOST);
+if (!ALLOW_LIVE) {
+  console.error('REFUSING TO SEED LIVE PROJECT. Set FIRESTORE_EMULATOR_HOST or SITEHUB_SEED_ALLOW_LIVE=1.');
+  process.exit(1);
+}
+
 assertFirebaseScriptConfig();
 const DEMO_PASSWORD = demoCredentials.password;
 const ADMIN_EMAIL = demoCredentials.adminEmail;

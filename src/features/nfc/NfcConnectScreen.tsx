@@ -4,7 +4,7 @@
  * - Physical presence centered on device interaction
  * - Animated expanding electromagnetic pulses
  * - Real card representation with contactless chip & dynamic aura
- * - Live connection statistics (+6 today, 24 connections this month)
+ * - Shows the owner's real card identity
  * - Tactile, premium feedback
  */
 import React, { useCallback, useEffect, useRef } from 'react';
@@ -21,6 +21,8 @@ import { router } from 'expo-router';
 import { AppText } from '@/src/components/AppText';
 import { AppIcon } from '@/src/components/AppIcon';
 import { HapticTap } from '@/src/utils/haptics';
+import { useAuth } from '@/src/hooks/useAuth';
+import { useBioPage } from '@/src/hooks/useBioPage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -38,6 +40,11 @@ const C = {
 } as const;
 
 export default function NfcConnectScreen() {
+  const { user } = useAuth();
+  const { bioPage } = useBioPage(user?.id ?? '');
+  const cardName = (bioPage?.displayName || user?.displayName || 'Your Name').toUpperCase();
+  const cardTitle = bioPage?.tagline || bioPage?.headline || '';
+
   const pulseAnim1 = useRef(new Animated.Value(0.2)).current;
   const pulseAnim2 = useRef(new Animated.Value(0.1)).current;
   const scaleAnim1 = useRef(new Animated.Value(0.85)).current;
@@ -179,9 +186,8 @@ export default function NfcConnectScreen() {
                 NFC GLOBAL
               </AppText>
               <View style={styles.statusLivePill}>
-                <View style={styles.beaconDot} />
                 <AppText style={styles.beaconText} weight="bold">
-                  BEAM ON
+                  NFC CARD
                 </AppText>
               </View>
             </View>
@@ -191,11 +197,13 @@ export default function NfcConnectScreen() {
                 <AppIcon name="wifi" size={36} color="#FFFFFF" style={{ transform: [{ rotate: '90deg' }] }} />
               </View>
               <AppText style={styles.cardHolderName} weight="bold">
-                THEAN COC
+                {cardName}
               </AppText>
-              <AppText style={styles.cardHolderTitle}>
-                FOUNDER & DIRECTOR
-              </AppText>
+              {cardTitle ? (
+                <AppText style={styles.cardHolderTitle}>
+                  {cardTitle.toUpperCase()}
+                </AppText>
+              ) : null}
             </View>
 
             <View style={styles.cardFoot}>
@@ -211,30 +219,6 @@ export default function NfcConnectScreen() {
 
         {/* Bottom Living Connections Context */}
         <View style={styles.bottomSection}>
-          <View style={styles.livingMetricsBox}>
-            <View style={styles.livingMetricItem}>
-              <AppText style={styles.livingMetricNum} weight="bold">
-                24
-              </AppText>
-              <AppText style={styles.livingMetricLabel}>
-                BEAMED THIS MONTH
-              </AppText>
-            </View>
-
-            <View style={styles.metricDivider} />
-
-            <View style={styles.livingMetricItem}>
-              <View style={styles.todayHighlightRow}>
-                <AppText style={styles.livingMetricNum} weight="bold">
-                  +6
-                </AppText>
-                <View style={styles.liveIndicatorDot} />
-              </View>
-              <AppText style={styles.livingMetricLabel}>
-                EXCHANGED TODAY
-              </AppText>
-            </View>
-          </View>
 
           {/* Trigger Scan Button */}
           <Pressable
@@ -245,7 +229,7 @@ export default function NfcConnectScreen() {
             onPress={handleSimulateTap}
           >
             <AppText style={styles.actionButtonText} weight="bold">
-              BEAM DIGITAL CARD
+              WRITE MY NFC CARD
             </AppText>
           </Pressable>
         </View>

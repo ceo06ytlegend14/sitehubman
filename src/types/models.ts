@@ -600,7 +600,7 @@ export interface BioPage {
   facebook?: string;
   customLinks: { label: string; url: string }[];
   
-  /** Tap Page Specific Fields (Ban Nguyen Specification) */
+  /** Tap Page Specific Fields */
   heroTitleVi?: string;
   heroTitleEn?: string;
   heroOrg?: string;

@@ -80,175 +80,161 @@ export default function NfcTestScreen() {
     let isNativeNfc = false;
 
     // ==========================================
-    // STAGE 1: NFC Hardware / Chip Detection
+    // STAGE 1: NFC Hardware / Tag Read (real)
     // ==========================================
-    updateStep('nfc_detect', { status: 'running', detail: 'Interrogating NFC controller...' });
+    updateStep('nfc_detect', { status: 'running', detail: 'Checking NFC support...' });
     try {
       const available = await isNfcAvailable().catch(() => false);
-      if (available && Platform.OS !== 'web') {
-        isNativeNfc = true;
-        await startNfcManager().catch(() => {});
-        updateStep('nfc_detect', { detail: 'Hardware online · Tap card now...' });
-        
-        // Wait for real tag with timeout fallback
-        const readPromise = readNfcTag();
-        const timeoutPromise = new Promise<{ id?: string }>((resolve) =>
-          setTimeout(() => resolve({ id: '04:A2:3B:8F:90:E1' }), 3500)
-        );
-        const tag = (await Promise.race([readPromise, timeoutPromise])) as any;
-        detectedChipUid = tag?.id || '04:A2:3B:8F:90:E1';
-        
-        await SoundFeedback.playNfcTap();
-        Haptics.success();
+      if (!available || Platform.OS === 'web') {
         updateStep('nfc_detect', {
-          status: 'passed',
-          detail: `UID: ${detectedChipUid} (NTAG216 · 888B)`,
+          status: 'simulated',
+          detail: 'No NFC hardware here (browser/emulator) — profile link still checked',
         });
       } else {
-        // Web / Simulator / Dev Environment: run real controller probe
-        await new Promise((r) => setTimeout(r, 600));
-        detectedChipUid = '04:D3:5F:2A:78:E0';
-        await SoundFeedback.playNfcTap();
-        Haptics.success();
-        updateStep('nfc_detect', {
-          status: 'passed',
-          detail: `UID: ${detectedChipUid} · 13.56 MHz ISO 14443-A`,
-        });
+        isNativeNfc = true;
+        await startNfcManager().catch(() => {});
+        updateStep('nfc_detect', { detail: 'Hardware ready · Tap an NFC card now...' });
+
+        const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000));
+        const tag = (await Promise.race([readNfcTag().catch(() => null), timeoutPromise])) as any;
+        const uid: string | undefined = tag?.id ?? tag?.uid ?? tag?.tagId;
+        if (uid) {
+          detectedChipUid = uid;
+          await SoundFeedback.playNfcTap().catch(() => {});
+          Haptics.success();
+          updateStep('nfc_detect', { status: 'passed', detail: `Tag UID: ${detectedChipUid}` });
+        } else {
+          updateStep('nfc_detect', {
+            status: 'failed',
+            detail: 'No tag detected within 5s — hold a card against the phone',
+          });
+        }
       }
-    } catch (err: any) {
-      detectedChipUid = '04:77:9B:10:4C:E3';
-      updateStep('nfc_detect', {
-        status: 'simulated',
-        detail: `Simulated Chip: ${detectedChipUid}`,
-      });
+    } catch (err) {
+      console.warn('[NfcTest] NFC stage failed', err);
+      updateStep('nfc_detect', { status: 'failed', detail: 'NFC check failed on this device' });
     }
 
-    setDiagnostics((d) => ({ ...d, chipUid: detectedChipUid, nativeNfc: isNativeNfc }));
+    setDiagnostics((d) => ({ ...d, chipUid: detectedChipUid || undefined, nativeNfc: isNativeNfc }));
 
     // ==========================================
-    // STAGE 2: Real Profile Verification (Firestore)
+    // STAGE 2: Profile Verification (Firestore, real)
     // ==========================================
-    updateStep('profile_open', { status: 'running', detail: 'Querying Firestore bio_pages...' });
-    await new Promise((r) => setTimeout(r, 400));
+    updateStep('profile_open', { status: 'running', detail: 'Looking up your profile...' });
 
+    let profileOk = false;
     try {
-      let resolvedName = user?.displayName || 'Thean Coc';
-      let resolvedSlug = 'theancoc';
+      const resolvedName = user?.displayName?.trim() || 'You';
+      let resolvedSlug: string | null = null;
 
       if (user?.id) {
-        // Query bio_pages or profiles doc
         try {
           const profileDoc = await getDoc(doc(db, firebaseCollections.bioPages, user.id));
           if (profileDoc.exists()) {
             const data = profileDoc.data();
-            resolvedName = data?.displayName || resolvedName;
-            resolvedSlug = data?.slug || data?.publicSlug || resolvedSlug;
+            resolvedSlug = data?.slug || data?.publicSlug || null;
             targetProfileId = profileDoc.id;
           } else {
-            // Check cards collection
             const cardDoc = await getDoc(doc(db, firebaseCollections.cards, user.id));
             if (cardDoc.exists()) {
               const cdata = cardDoc.data();
-              resolvedName = cdata?.profile?.fullName || resolvedName;
-              resolvedSlug = cdata?.publicSlug || user.id;
+              resolvedSlug = cdata?.publicSlug || null;
               targetProfileId = cardDoc.id;
             }
           }
-        } catch {
-          // Gracefully fall back to local auth profile
+        } catch (err) {
+          console.warn('[NfcTest] Profile lookup failed', err);
         }
       }
 
-      targetProfileUrl = buildSlugProfileUrl(resolvedSlug);
-      HapticTap.light();
-      updateStep('profile_open', {
-        status: 'passed',
-        detail: `${resolvedName} (@${resolvedSlug})`,
-      });
-      setDiagnostics((d) => ({ ...d, profileId: targetProfileId, profileUrl: targetProfileUrl }));
-    } catch (err: any) {
-      targetProfileUrl = `${PUBLIC_PROFILE_HOST}/c/theancoc`;
-      updateStep('profile_open', {
-        status: 'passed',
-        detail: 'Active Profile Verified',
-      });
+      if (resolvedSlug) {
+        profileOk = true;
+        targetProfileUrl = buildSlugProfileUrl(resolvedSlug);
+        updateStep('profile_open', {
+          status: 'passed',
+          detail: `${resolvedName} (@${resolvedSlug})`,
+        });
+        setDiagnostics((d) => ({ ...d, profileId: targetProfileId, profileUrl: targetProfileUrl }));
+      } else {
+        updateStep('profile_open', {
+          status: 'failed',
+          detail: 'No published profile found — create your profile first',
+        });
+      }
+    } catch (err) {
+      console.warn('[NfcTest] Profile stage failed', err);
+      updateStep('profile_open', { status: 'failed', detail: 'Profile lookup failed' });
     }
 
     // ==========================================
-    // STAGE 3: Real Public Link Health Ping & Latency
+    // STAGE 3: Public Profile Host Reachability (real)
     // ==========================================
     updateStep('link_working', { status: 'running', detail: `Pinging ${PUBLIC_PROFILE_HOST}...` });
     const startTime = Date.now();
-    let httpOk = false;
     let latency = 0;
+    let linkOk = false;
+    let httpStatus: number | undefined;
 
     try {
-      // Execute real fetch to profile host
-      const res = await fetch(PUBLIC_PROFILE_HOST, {
-        method: 'HEAD',
-        cache: 'no-cache',
-      }).catch(() => null);
-
+      const res = await fetch(PUBLIC_PROFILE_HOST, { method: 'HEAD', cache: 'no-cache' }).catch(() => null);
       latency = Date.now() - startTime;
-      httpOk = res ? res.status < 500 : true;
-      const statusText = res ? `${res.status} OK` : '200 OK (CDN)';
-
-      HapticTap.light();
-      updateStep('link_working', {
-        status: 'passed',
-        detail: `${statusText} · ${latency}ms latency`,
-        latencyMs: latency,
-      });
-      setDiagnostics((d) => ({ ...d, httpStatus: res?.status ?? 200, latencyMs: latency }));
-    } catch {
-      latency = Math.max(48, Date.now() - startTime);
-      updateStep('link_working', {
-        status: 'passed',
-        detail: `200 OK (Cache) · ${latency}ms latency`,
-        latencyMs: latency,
-      });
+      if (res) {
+        httpStatus = res.status;
+        linkOk = res.status < 500;
+        updateStep('link_working', {
+          status: linkOk ? 'passed' : 'failed',
+          detail: `HTTP ${res.status} · ${latency}ms`,
+          latencyMs: latency,
+        });
+      } else {
+        updateStep('link_working', {
+          status: 'failed',
+          detail: `Could not reach ${PUBLIC_PROFILE_HOST} — check your connection`,
+          latencyMs: latency,
+        });
+      }
+      setDiagnostics((d) => ({ ...d, httpStatus, latencyMs: latency }));
+    } catch (err) {
+      latency = Date.now() - startTime;
+      console.warn('[NfcTest] Link check failed', err);
+      updateStep('link_working', { status: 'failed', detail: 'Link check failed', latencyMs: latency });
+      setDiagnostics((d) => ({ ...d, latencyMs: latency }));
     }
 
     // ==========================================
-    // STAGE 4: Card Ready & Telemetry Beaconing
+    // STAGE 4: Test Telemetry + Verdict
     // ==========================================
-    updateStep('card_ready', { status: 'running', detail: 'Writing tap beacon to Firestore...' });
-    await new Promise((r) => setTimeout(r, 350));
+    updateStep('card_ready', { status: 'running', detail: 'Logging this test run...' });
 
     try {
-      // Attempt live tap_events log
-      try {
-        await addDoc(collection(db, firebaseCollections.tapEvents), {
-          userId: user?.id || 'guest',
-          cardId: targetProfileId,
-          chipUID: detectedChipUid,
-          source: 'nfc_test_runner',
-          platform: Platform.OS,
-          timestamp: serverTimestamp(),
-          clientTimestamp: new Date().toISOString(),
-          status: 'verified',
-          latencyMs: latency,
-        });
-        setDiagnostics((d) => ({ ...d, telemetryLogged: true }));
-      } catch {
-        // Fallback for unauthenticated/offline rules
-        setDiagnostics((d) => ({ ...d, telemetryLogged: false }));
+      if (user?.id) {
+        try {
+          await addDoc(collection(db, firebaseCollections.tapEvents), {
+            userId: user.id,
+            cardId: targetProfileId,
+            ...(detectedChipUid ? { chipUID: detectedChipUid } : {}),
+            source: 'nfc_test_runner',
+            platform: Platform.OS,
+            timestamp: serverTimestamp(),
+            clientTimestamp: new Date().toISOString(),
+            status: 'test',
+            latencyMs: latency,
+          });
+          setDiagnostics((d) => ({ ...d, telemetryLogged: true }));
+        } catch {
+          setDiagnostics((d) => ({ ...d, telemetryLogged: false }));
+        }
       }
 
-      await SoundFeedback.playSuccess();
-      Haptics.celebration();
-
+      const nfcDetail = detectedChipUid ? 'Tag read OK' : 'No tag read this run';
       updateStep('card_ready', {
-        status: 'passed',
-        detail: 'Ready to tap · 100% operational',
+        status: profileOk && linkOk ? 'passed' : 'failed',
+        detail: profileOk && linkOk ? `Ready to tap · ${nfcDetail}` : 'Not ready — fix the failing steps above',
       });
-      setTestResult('success');
-    } catch {
-      updateStep('card_ready', {
-        status: 'passed',
-        detail: 'Ready to tap · Local cache active',
-      });
-      setTestResult('success');
+      setTestResult(profileOk && linkOk ? 'success' : 'partial');
+    } catch (err) {
+      console.warn('[NfcTest] Telemetry stage failed', err);
+      setTestResult(profileOk && linkOk ? 'success' : 'partial');
     } finally {
       setIsRunning(false);
     }
@@ -348,7 +334,7 @@ export default function NfcTestScreen() {
           <View style={styles.diagnosticsCard}>
             <View style={styles.diagHeader}>
               <AppIcon name="Cpu" size={14} color="#799A85" />
-              <AppText style={styles.diagTitle} weight="bold">LIVE HARDWARE DIAGNOSTICS</AppText>
+              <AppText style={styles.diagTitle} weight="bold">DIAGNOSTICS</AppText>
             </View>
             <View style={styles.diagRow}>
               <AppText style={styles.diagKey}>NFC Silicon UID</AppText>
@@ -361,7 +347,7 @@ export default function NfcTestScreen() {
             <View style={styles.diagRow}>
               <AppText style={styles.diagKey}>Telemetry Sync</AppText>
               <AppText style={styles.diagValSage} weight="semibold">
-                {diagnostics.telemetryLogged ? 'Live Firestore Verified' : 'Local Queue Active'}
+                {diagnostics.telemetryLogged === true ? 'Test run logged' : diagnostics.telemetryLogged === false ? 'Not logged (offline or denied)' : '—'}
               </AppText>
             </View>
           </View>
@@ -372,8 +358,8 @@ export default function NfcTestScreen() {
           <View style={styles.badge}>
             <AppIcon name="BadgeCheck" size={20} color="#30D158" />
             <View style={{ gap: 2 }}>
-              <AppText style={styles.badgeText} weight="bold">All 4 Live Verifications Passed</AppText>
-              <AppText style={styles.badgeSub}>Card hardware and web routing are 100% operational.</AppText>
+              <AppText style={styles.badgeText} weight="bold">Profile link verified</AppText>
+              <AppText style={styles.badgeSub}>Your public card link is reachable and ready to share.</AppText>
             </View>
           </View>
         )}
