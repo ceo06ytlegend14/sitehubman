@@ -23,12 +23,12 @@ export interface SeoHeadProps {
 }
 
 const BASE_URL = (process.env.EXPO_PUBLIC_PROFILE_HOST || 'https://sitehub-8dd56.web.app').replace(/\/+$/, '');
-const DEFAULT_OG_IMAGE = `${BASE_URL}/og-avio.png`;
-const SITE_NAME = 'AVIO';
+const DEFAULT_OG_IMAGE = `${BASE_URL}/assets/images/snap-tap-logo.png`;
+const SITE_NAME = 'SiteHub';
 
 export function SeoHead({
-  title = 'AVIO – Smart NFC Digital Business Cards & Edge Identity',
-  description = 'Next-generation NFC physical business cards powered by Cloudflare Workers. Share your bio, contact info, and portfolio with a single tap. CONNECT · IDENTIFY · EMPOWER.',
+  title = 'SiteHub – Smart NFC Digital Business Cards',
+  description = 'NFC business cards and digital profiles. Share your contact info, links, and portfolio with a single tap.',
   slug,
   displayName,
   headline,
@@ -67,7 +67,7 @@ export function SeoHead({
           image: ogImage,
           brand: {
             '@type': 'Brand',
-            name: 'AVIO',
+            name: 'SiteHub',
           },
           offers: {
             '@type': 'Offer',
@@ -80,14 +80,9 @@ export function SeoHead({
       : {
           '@context': 'https://schema.org',
           '@type': 'Organization',
-          name: 'AVIO Technologies',
+          name: 'SiteHub',
           url: BASE_URL,
-          logo: `${BASE_URL}/logo.png`,
-          sameAs: [
-            'https://twitter.com/aviobrand',
-            'https://linkedin.com/company/aviobrand',
-            'https://instagram.com/aviobrand',
-          ],
+          logo: DEFAULT_OG_IMAGE,
         };
 
   return (
@@ -96,7 +91,7 @@ export function SeoHead({
       <meta name="description" content={description} />
       <meta
         name="keywords"
-        content="AVIO, NFC business card, smart business card, digital business card, contactless networking, tap to share, vCard download, edge bio profile"
+        content="SiteHub, NFC business card, smart business card, digital business card, contactless networking, tap to share, vCard download, digital profile"
       />
       <meta name="robots" content={noIndex ? 'noindex, nofollow' : 'index, follow'} />
       <link rel="canonical" href={canonicalUrl} />

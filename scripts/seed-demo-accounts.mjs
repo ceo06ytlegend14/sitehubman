@@ -32,8 +32,6 @@ const demoAccounts = [
   { email: 'finance@demo.com',   password: DEMO_PASSWORD, displayName: 'Demo Finance',  role: 'finance' },
   { email: ADMIN_EMAIL,         password: DEMO_PASSWORD, displayName: 'Demo Admin',    role: 'admin' },
   { email: 'super@demo.com',    password: DEMO_PASSWORD, displayName: 'Super Admin',   role: 'super_admin' },
-  { email: 'sales@gmail.com',   password: 'sales1234',   displayName: 'Gmail Sales',    role: 'sales' },
-  { email: 'printer@gmail.com', password: 'printer1234', displayName: 'Gmail Printer',  role: 'printer' },
 ];
 
 async function createAccount({ email, password, displayName, role }) {
@@ -92,6 +90,4 @@ console.log(`  printer@demo.com  / ${DEMO_PASSWORD}  (Printer role)`);
 console.log(`  customer@demo.com / ${DEMO_PASSWORD}  (Customer role)`);
 console.log(`  ${ADMIN_EMAIL}    / ${DEMO_PASSWORD}  (Admin role)`);
 console.log(`  super@demo.com    / ${DEMO_PASSWORD}  (Super Admin role)`);
-console.log(`  sales@gmail.com   / sales1234  (Gmail Sales role)`);
-console.log(`  printer@gmail.com / printer1234  (Gmail Printer role)`);
 process.exit(0);

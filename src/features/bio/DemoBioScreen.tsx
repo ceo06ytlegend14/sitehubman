@@ -1,9 +1,9 @@
 /**
- * DemoBioScreen — Static demo profile for aviobrand.com/u/demo
+ * DemoBioScreen — Static demo profile for /u/demo on the public host
  *
  * This is a fully baked executive profile used on the landing page.
  * No Firestore dependency — completely static so it always loads instantly.
- * It showcases what a real AVIO Smart Pass looks like for a visitor.
+ * It showcases what a real SiteHub looks like for a visitor.
  */
 import React, { useState } from 'react';
 import {
@@ -24,14 +24,15 @@ import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { HapticTap } from '@/src/utils/haptics';
+import { PUBLIC_PROFILE_HOST } from '@/src/constants/publicProfile';
 
-const DEMO_PROFILE_URL = 'https://aviobrand.com/u/demo';
+const DEMO_PROFILE_URL = `${PUBLIC_PROFILE_HOST}/u/demo`;
 
 const DEMO_SOCIALS = [
-  { key: 'email', name: 'Email', icon: 'Mail' as const, value: 'alex@aviobrand.com', url: 'mailto:alex@aviobrand.com' },
-  { key: 'linkedin', name: 'LinkedIn', icon: 'Linkedin' as const, value: 'linkedin.com/in/alexwright', url: 'https://linkedin.com/in/alexwright' },
-  { key: 'website', name: 'Website', icon: 'Globe' as const, value: 'aviobrand.com', url: 'https://aviobrand.com' },
-  { key: 'telegram', name: 'Telegram', icon: 'Send' as const, value: '@alexwright', url: 'https://t.me/alexwright' },
+  { key: 'email', name: 'Email', icon: 'Mail' as const, value: 'alex@example.com', url: 'mailto:alex@example.com' },
+  { key: 'linkedin', name: 'LinkedIn', icon: 'Linkedin' as const, value: 'example.com/demo/linkedin', url: 'https://example.com/demo/linkedin' },
+  { key: 'website', name: 'Website', icon: 'Globe' as const, value: PUBLIC_PROFILE_HOST.replace('https://', ''), url: PUBLIC_PROFILE_HOST },
+  { key: 'telegram', name: 'Telegram', icon: 'Send' as const, value: '@sitehub_demo', url: 'https://t.me/sitehub_demo' },
 ];
 
 export function DemoBioScreen() {
@@ -48,8 +49,8 @@ export function DemoBioScreen() {
       'VERSION:3.0',
       'FN:Alex Wright',
       'TITLE:Founder & CEO',
-      'ORG:AVIO',
-      'EMAIL:alex@aviobrand.com',
+      'ORG:SiteHub Demo',
+      'EMAIL:alex@example.com',
       `URL:${DEMO_PROFILE_URL}`,
       'END:VCARD',
     ].join('\n');
@@ -59,9 +60,9 @@ export function DemoBioScreen() {
   return (
     <View style={styles.root}>
       <Head>
-        <title>Alex Wright — Founder & CEO | AVIO Smart Pass</title>
-        <meta name="description" content="Alex Wright's digital NFC business profile. Tap or scan to save contact, connect on LinkedIn, Telegram, and more." />
-        <meta property="og:title" content="Alex Wright — AVIO Smart Pass" />
+        <title>Alex Wright — Founder & CEO | SiteHub Demo</title>
+        <meta name="description" content="Alex Wright is a fictional demo persona. This is a sample SiteHub profile — tap or scan to see how a real one works." />
+        <meta property="og:title" content="Alex Wright — SiteHub Demo" />
         <meta property="og:description" content="One tap to connect. Save contact, view social channels, and see Alex's full executive profile." />
         <meta property="og:url" content={DEMO_PROFILE_URL} />
       </Head>
@@ -70,7 +71,7 @@ export function DemoBioScreen() {
         {/* Nav */}
         <View style={styles.navHeader}>
           <View style={styles.navBrand}>
-            <AppText style={styles.navBrandText} weight="extrabold">AVIO</AppText>
+            <AppText style={styles.navBrandText} weight="extrabold">SiteHub</AppText>
           </View>
           <View style={styles.navRight}>
             <Pressable
@@ -106,8 +107,8 @@ export function DemoBioScreen() {
             {/* Name & Title */}
             <View style={styles.nameBlock}>
               <AppText style={styles.nameText} weight="extrabold">Alex Wright</AppText>
-              <AppText style={styles.taglineText}>Founder & CEO · AVIO</AppText>
-              <AppText style={styles.slugBadge}>aviobrand.com/u/demo</AppText>
+              <AppText style={styles.taglineText}>Founder & CEO · SiteHub</AppText>
+              <AppText style={styles.slugBadge}>{PUBLIC_PROFILE_HOST.replace('https://', '')}/u/demo</AppText>
             </View>
 
             {/* Save Contact & Exchange Contact CTAs */}
@@ -182,7 +183,7 @@ export function DemoBioScreen() {
             <AppText style={styles.sectionHeading} weight="extrabold">ABOUT</AppText>
             <View style={styles.bioCard}>
               <AppText style={styles.bioText}>
-                Building the future of professional identity with NFC-first smart business cards. AVIO replaces paper cards with a single elegant tap.
+                Building the future of professional identity with NFC-first smart business cards. SiteHub replaces paper cards with a single elegant tap.
               </AppText>
             </View>
           </View>
@@ -190,15 +191,15 @@ export function DemoBioScreen() {
           {/* Viral CTA */}
           <Pressable
             style={({ pressed }) => [styles.viralCard, pressed && styles.pressed]}
-            onPress={() => { HapticTap.medium(); Linking.openURL('https://aviobrand.com').catch(() => undefined); }}
+            onPress={() => { HapticTap.medium(); Linking.openURL(PUBLIC_PROFILE_HOST).catch(() => undefined); }}
           >
             <View style={styles.viralInner}>
               <View style={styles.viralSeal}>
-                <AppText style={styles.viralSealText} weight="extrabold">A</AppText>
+                <AppText style={styles.viralSealText} weight="extrabold">S</AppText>
               </View>
               <View style={{ flex: 1 }}>
                 <AppText style={styles.viralTitle} weight="extrabold">Want your own card like this?</AppText>
-                <AppText style={styles.viralSub}>Create a free AVIO Smart Pass in 60 seconds.</AppText>
+                <AppText style={styles.viralSub}>Create a free SiteHub profile in 60 seconds.</AppText>
               </View>
               <AppIcon name="ArrowUpRight" size={18} color="#FFFFFF" />
             </View>
@@ -207,7 +208,7 @@ export function DemoBioScreen() {
           {/* NFC Footer */}
           <View style={styles.nfcFooter}>
             <View style={styles.nfcDot} />
-            <AppText style={styles.nfcFooterText}>AVIO Smart Pass · DEMO PROFILE</AppText>
+            <AppText style={styles.nfcFooterText}>SiteHub · DEMO PROFILE</AppText>
           </View>
         </IosScrollView>
       </SafeAreaView>
@@ -255,7 +256,7 @@ export function DemoBioScreen() {
                   <AppIcon name="Check" size={22} color="#000000" />
                 </View>
                 <AppText style={styles.exchangeSuccessTitle} weight="extrabold">Demo only</AppText>
-                <AppText style={styles.exchangeSuccessSub}>This is a demo profile — nothing was sent. Create your own AVIO Smart Pass to exchange contacts for real.</AppText>
+                <AppText style={styles.exchangeSuccessSub}>This is a demo profile — nothing was sent. Create your own SiteHub to exchange contacts for real.</AppText>
               </View>
             ) : (
               <View style={styles.exchangeForm}>

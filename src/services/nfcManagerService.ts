@@ -77,6 +77,14 @@ export async function writeNfcUrl(url: string) {
       void nfc.NfcManager.cancelTechnologyRequest();
     }
   });
+
+  // Return the real tag UID when the platform exposes one; never fabricate it.
+  try {
+    const tag = await nfc.NfcManager.getTag();
+    return tag ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function readNfcTag() {

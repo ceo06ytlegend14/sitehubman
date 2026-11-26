@@ -68,7 +68,7 @@ export function HelpCenterScreen() {
 
   const handleSupportClick = () => {
     HapticTap.selection();
-    void Linking.openURL('mailto:support@aviobrand.com?subject=AVIO%20support%20request').catch(() => undefined);
+    void Linking.openURL('mailto:support@aviobrand.com?subject=SiteHub%20support%20request').catch(() => undefined);
   };
 
   return (

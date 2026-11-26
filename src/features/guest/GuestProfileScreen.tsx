@@ -3,7 +3,7 @@
  *
  * Design Philosophy:
  *  - Stripped of heavy nested boxes and card clutter (35% reduction in visual noise)
- *  - One clear, beautiful focal element: The AVIO Smart Pass (Apple Wallet style)
+ *  - One clear, beautiful focal element: the SiteHub wallet-style card
  *  - Controlled contrast: Pure black background (#000000) with atmospheric dark gray & crisp white typography
  *  - Clean inline metrics without clunky multi-border containers
  *  - Minimalist hardware identity selector (selecting your physical AVIO pass tier)
@@ -114,7 +114,7 @@ export function GuestProfileScreen() {
             </View>
           </View>
 
-          {/* ── 3. Focal Hero Element: AVIO Smart Pass (Apple Wallet Style) ── */}
+          {/* ── 3. Focal Hero Element: SiteHub wallet-style card ── */}
           <View style={styles.passSection}>
             <LinearGradient
               colors={selectedTier.grad as any}

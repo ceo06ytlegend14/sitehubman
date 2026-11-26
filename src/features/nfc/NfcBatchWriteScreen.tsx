@@ -116,11 +116,15 @@ export default function NfcBatchWriteScreen() {
       const encryptedUrl = await encryptNfcUrl(card.cardId);
 
       // Write to NFC tag
-      await writeNfcUrl(encryptedUrl);
+      const tag = await writeNfcUrl(encryptedUrl);
 
-      // Register tag in database
-      const uid = `NFC_${Date.now()}`; // TODO: Read actual UID from tag
-      await registerNfcTag(uid, card.cardId, card.userId);
+      // Register tag only when the platform reported a real UID — never invent one.
+      const uid = tag?.id;
+      if (uid) {
+        await registerNfcTag(uid, card.cardId, card.userId);
+      } else {
+        console.warn('[NfcBatchWrite] Tag written but its UID is unavailable; skipping registerNfcTag.');
+      }
 
       // Mark success
       setBatchCards((prev) => {

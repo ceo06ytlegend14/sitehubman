@@ -8,7 +8,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { collection, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, deleteDoc, doc, writeBatch } from 'firebase/firestore';
 import { db } from '@/src/services/firebaseClient';
 import { useAuth } from '@/src/hooks/useAuth';
 import { ScreenContainer } from '@/src/components/ScreenContainer';
@@ -55,10 +55,6 @@ export default function PaymentMethodsScreen() {
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadPaymentMethods();
-  }, []);
-
   const loadPaymentMethods = useCallback(async () => {
     try {
       setLoading(true);
@@ -80,6 +76,10 @@ export default function PaymentMethodsScreen() {
     }
   }, [user]);
 
+  useEffect(() => {
+    void loadPaymentMethods();
+  }, [loadPaymentMethods]);
+
   const handleAddMethod = useCallback(() => {
     HapticTap.medium();
     router.push('/payment/add-method' as any);
@@ -87,11 +87,25 @@ export default function PaymentMethodsScreen() {
 
   const handleSetDefault = useCallback(async (methodId: string) => {
     HapticTap.light();
+    const previous = methods;
     setMethods((prev) =>
       prev.map((m) => ({ ...m, isDefault: m.id === methodId }))
     );
-    // TODO: Update in Firestore
-  }, []);
+    try {
+      const batch = writeBatch(db);
+      for (const m of previous) {
+        if (m.isDefault && m.id !== methodId) {
+          batch.update(doc(db, 'payment_methods', m.id), { isDefault: false });
+        }
+      }
+      batch.update(doc(db, 'payment_methods', methodId), { isDefault: true });
+      await batch.commit();
+    } catch (error) {
+      console.error('[PaymentMethods] Set default failed', error);
+      setMethods(previous); // roll back the optimistic update
+      Alert.alert('Error', 'Could not update your default payment method. Please try again.');
+    }
+  }, [methods]);
 
   const handleDeleteMethod = useCallback((method: PaymentMethod) => {
     HapticTap.error();

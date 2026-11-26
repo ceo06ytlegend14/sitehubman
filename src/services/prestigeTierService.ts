@@ -1,7 +1,7 @@
 /**
  * prestigeTierService.ts
  *
- * Executive Prestige Tier Engine for AVIO Smart Pass.
+ * Executive Prestige Tier Engine for SiteHub.
  *
  * Tiers:
  *  - Tier 1: Slate Obsidian (0 - 4 connections)

@@ -63,8 +63,8 @@ export async function notifyCardOwnerOfView(
       to: token,
       title: '👀 Someone viewed your card',
       body: viewerLabel
-        ? `${viewerLabel} just opened your AVIO Smart Pass.`
-        : 'Someone just tapped and opened your AVIO Smart Pass.',
+        ? `${viewerLabel} just opened your SiteHub profile.`
+        : 'Someone just tapped and opened your SiteHub profile.',
       sound: 'default',
       priority: 'high',
       data: { screen: 'analytics', event: 'card_view' },
@@ -91,7 +91,7 @@ export async function notifyCardOwnerOfSave(ownerUserId: string): Promise<void> 
     await sendExpoPush({
       to: token,
       title: '🤝 New contact saved',
-      body: 'Someone saved your contact from your AVIO Smart Pass!',
+      body: 'Someone saved your contact from your SiteHub profile!',
       sound: 'default',
       priority: 'high',
       data: { screen: 'analytics', event: 'contact_saved' },

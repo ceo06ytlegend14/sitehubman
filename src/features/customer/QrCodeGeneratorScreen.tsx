@@ -39,11 +39,12 @@ export function QrCodeGeneratorScreen() {
   const { bioPage } = useBioPage(user?.id ?? '');
 
   const userName = bioPage?.displayName || user?.displayName || 'Your name';
-  const profileUrl = useMemo(() => (bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : ''), [bioPage?.slug]);
+  const profileUrl = useMemo(() => (bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : ''), [bioPage]);
 
   const handleDownload = useCallback(() => {
-    HapticTap.confidentClick();
-    Alert.alert('Download QR', 'QR Code saved to camera roll.', [{ text: 'OK' }]);
+    HapticTap.light();
+    // There is no image-capture pipeline wired here yet; don't claim a save happened.
+    Alert.alert('Save QR', 'Saving the QR image to your camera roll is not supported yet. Use Share to send the QR code or your profile link.', [{ text: 'OK' }]);
   }, []);
 
   const handleShare = useCallback(async () => {

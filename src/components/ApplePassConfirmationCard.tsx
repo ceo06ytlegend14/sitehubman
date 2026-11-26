@@ -28,7 +28,7 @@ interface ApplePassConfirmationCardProps {
 }
 
 export function ApplePassConfirmationCard({
-  cardName = 'AVIO Smart Pass',
+  cardName = 'SiteHub Card',
   title = 'Pass Active ✓',
   subtitle = 'Your executive profile and NFC chip are ready for instant client contact exchange.',
   isCompleted = true,

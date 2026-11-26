@@ -2,7 +2,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { PublicBioScreen } from '@/src/features/bio/PublicBioScreen';
 import { DemoBioScreen } from '@/src/features/bio/DemoBioScreen';
 
-/** Vanity profile URL: https://sitehubman.vercel.app/u/{slug}. */
+/** Vanity profile URL: https://sitehub-8dd56.web.app/u/{slug}. */
 export default function PublicSlugRoute() {
   const params = useLocalSearchParams<{ slug: string }>();
   const slug = typeof params.slug === 'string' ? params.slug : '';

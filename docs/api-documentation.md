@@ -12,7 +12,9 @@ To connect a proper backend, replace each Firestore call with an API call.
 
 ### Base URL
 ```
-https://api.sitehubman.com/v1
+https://<your-api-host>/v1
+
+> NOTE: no public API host is live yet. The app talks directly to Firestore; this document is a spec for a future backend. Replace `<your-api-host>` with your real backend domain when one exists.
 ```
 
 ### Authentication
@@ -28,7 +30,7 @@ Authorization: Bearer <firebase_id_token>
 | Card ID | `BC-NFC_XXXXXXXX` | `BC-NFC_X7K2M9QP` |
 | Order Number | `ORD_xxxxxxxx` | `ORD_f4G7h8J2` |
 | User ID | Firebase Auth UID | `abc123xyz` |
-| Profile Slug | `name-suffix` | `chanthean-a1b2c3` |
+| Profile Slug | `name-suffix` | `jane-doe-a1b2c3` |
 
 ---
 
@@ -39,9 +41,9 @@ Create a new customer account.
 ```json
 // Request
 {
-  "email": "chanthean@gmail.com",
+  "email": "jane.doe@example.com",
   "password": "securePass123",
-  "displayName": "Chan Thean",
+  "displayName": "Jane Doe",
   "phone": "+855123456789",
   "language": "en"
 }
@@ -49,8 +51,8 @@ Create a new customer account.
 // Response 201
 {
   "userId": "firebase_uid_abc",
-  "email": "chanthean@gmail.com",
-  "displayName": "Chan Thean",
+  "email": "jane.doe@example.com",
+  "displayName": "Jane Doe",
   "role": "customer",
   "token": "<firebase_id_token>",
   "plan": "free",
@@ -65,12 +67,12 @@ Create a new customer account.
 Sign in with email/password.
 ```json
 // Request
-{ "email": "chanthean@gmail.com", "password": "securePass123" }
+{ "email": "jane.doe@example.com", "password": "securePass123" }
 
 // Response 200
 {
   "userId": "firebase_uid_abc",
-  "email": "chanthean@gmail.com",
+  "email": "jane.doe@example.com",
   "role": "customer",
   "token": "<firebase_id_token>",
   "dashboardRoute": "/customer"
@@ -128,8 +130,8 @@ Get current user profile.
 // Response 200
 {
   "id": "firebase_uid_abc",
-  "email": "chanthean@gmail.com",
-  "displayName": "Chan Thean",
+  "email": "jane.doe@example.com",
+  "displayName": "Jane Doe",
   "role": "customer",
   "phone": "+855123456789",
   "language": "en",
@@ -151,7 +153,7 @@ Create a new guest session with generated IDs.
 {
   "guestId": "GST_a1B2c3D4",
   "cardId": "BC-NFC_X7K2M9QP",
-  "publicSlug": "chanthean-a1b2c3",
+  "publicSlug": "jane-doe-a1b2c3",
   "guestAccessKey": "randomKey28chars...",
   "status": "active"
 }
@@ -210,12 +212,12 @@ Create a new card draft (guest or customer).
 {
   "guestId": "GST_a1B2c3D4",
   "profile": {
-    "fullName": "Chan Thean",
+    "fullName": "Jane Doe",
     "role": "Software Engineer",
     "company": "TechCo",
     "phone": "+855123456789",
-    "email": "chanthean@gmail.com",
-    "telegram": "@chanthean"
+    "email": "jane.doe@example.com",
+    "telegram": "@jane-doe"
   },
   "design": {
     "cardDesign": "classic_black",
@@ -227,8 +229,8 @@ Create a new card draft (guest or customer).
 // Response 201
 {
   "cardId": "BC-NFC_X7K2M9QP",
-  "publicSlug": "chanthean-a1b2c3",
-  "publicProfileUrl": "https://sitehubman.com/u/chanthean-a1b2c3",
+  "publicSlug": "jane-doe-a1b2c3",
+  "publicProfileUrl": "https://sitehubman.com/u/jane-doe-a1b2c3",
   "status": "draft",
   "ownerType": "guest",
   "ownerId": "GST_a1B2c3D4"
@@ -265,9 +267,9 @@ Create a new order (staff/sales creates).
 ```json
 // Request
 {
-  "customerName": "Chan Thean",
+  "customerName": "Jane Doe",
   "phone": "+855123456789",
-  "email": "chanthean@gmail.com",
+  "email": "jane.doe@example.com",
   "productType": "physical_nfc",
   "quantity": 1,
   "cardDesign": "classic_black",
@@ -296,7 +298,7 @@ Customer self-service order (from guest card design).
 // Request
 {
   "cardId": "BC-NFC_X7K2M9QP",
-  "shippingName": "Chan Thean",
+  "shippingName": "Jane Doe",
   "phone": "+855123456789",
   "deliveryAddress": "Phnom Penh, Cambodia",
   "quantity": 1,
@@ -455,13 +457,13 @@ Get public profile by slug.
 ```json
 // Response 200
 {
-  "displayName": "Chan Thean",
+  "displayName": "Jane Doe",
   "tagline": "Software Engineer",
   "photoUrl": "https://...",
   "whatsapp": "+855123456789",
-  "telegram": "@chanthean",
+  "telegram": "@jane-doe",
   "customLinks": [
-    { "label": "Portfolio", "url": "https://chanthean.com" }
+    { "label": "Portfolio", "url": "https://example.com" }
   ],
   "theme": "vibrant_pink"
 }

@@ -7,8 +7,8 @@
  *  - Identity block (Name, Title, Org, Positioning line)
  *  - Primary Action card (Icon, Label VI/EN, Subline VI/EN, Link)
  *  - Up to 3 Action Blocks (Tư vấn qua kênh bạn quen, Liên hệ, Sản phẩm và bài viết, etc.) with up to 4 items each
- *  - Trust Footnote block (Owner line, Trust note, aviobrand.com link, report link)
- *  - Viral growth card ("Powered by AVIO")
+ *  - Trust Footnote block (Owner line, Trust note, host link, report link)
+ *  - Viral growth card ("Powered by SiteHub")
  */
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -30,7 +30,7 @@ import QRCode from 'react-native-qrcode-svg';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { IosScrollView } from '@/src/components/IosScrollView';
-import { buildCardProfileUrl, buildSlugProfileUrl } from '@/src/constants/publicProfile';
+import { buildCardProfileUrl, buildSlugProfileUrl, PUBLIC_PROFILE_HOST } from '@/src/constants/publicProfile';
 import {
   resolvePublicProfileByCardId,
   resolvePublicProfileBySlug,
@@ -133,7 +133,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
     const url = publicUrl || (bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : slug ? buildSlugProfileUrl(slug) : '');
     try {
       await Share.share({
-        message: `AVIO Smart Pass: ${bioPage?.displayName || 'Digital business card'} - ${url}`,
+        message: `SiteHub: ${bioPage?.displayName || 'Digital business card'} - ${url}`,
         url,
         title: bioPage?.displayName || 'Digital business card',
       });
@@ -160,7 +160,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
       email ? `EMAIL;TYPE=INTERNET:${email}` : '',
       phone ? `TEL;TYPE=CELL:${phone}` : '',
       `URL:${url}`,
-      `NOTE:AVIO Smart Pass – ${url}`,
+      `NOTE:SiteHub – ${url}`,
       'END:VCARD',
     ].filter(Boolean).join('\n');
 
@@ -176,7 +176,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
         document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
       } else {
-        await Share.share({ message: vcard, title: `${name} – AVIO Contact Card` });
+        await Share.share({ message: vcard, title: `${name} – SiteHub Contact Card` });
       }
     } catch {
       // silent
@@ -271,9 +271,9 @@ export function PublicBioScreen({ slug, cardId }: Props) {
     <View style={styles.root}>
       {Platform.OS === 'web' ? (
         <Head>
-          <title>{`${bio.displayName} | AVIO Smart Pass`}</title>
+          <title>{`${bio.displayName} | SiteHub`}</title>
           <meta name="description" content={currentTitle || 'Digital Business Profile'} />
-          <meta property="og:title" content={`${bio.displayName} — AVIO Smart Pass`} />
+          <meta property="og:title" content={`${bio.displayName} — SiteHub`} />
           <meta property="og:description" content={currentTitle} />
           <meta property="og:url" content={canonicalUrl} />
           <meta name="theme-color" content="#000000" />
@@ -492,7 +492,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
           <View style={styles.trustCard}>
             <View style={styles.trustHeaderRow}>
               <View style={styles.trustBrandBadge}>
-                <AppText style={styles.trustBrandText} weight="extrabold">Powered by avio</AppText>
+                <AppText style={styles.trustBrandText} weight="extrabold">Powered by SiteHub</AppText>
               </View>
             </View>
 
@@ -501,12 +501,12 @@ export function PublicBioScreen({ slug, cardId }: Props) {
             </AppText>
 
             <View style={styles.trustLinksRow}>
-              <Pressable onPress={() => Linking.openURL('https://aviobrand.com')} style={styles.trustLinkItem}>
-                <AppText style={styles.trustLinkText} weight="bold">aviobrand.com</AppText>
+              <Pressable onPress={() => Linking.openURL(PUBLIC_PROFILE_HOST)} style={styles.trustLinkItem}>
+                <AppText style={styles.trustLinkText} weight="bold">{PUBLIC_PROFILE_HOST.replace('https://', '')}</AppText>
               </Pressable>
               <AppText style={styles.trustDot}>·</AppText>
-              <Pressable onPress={() => Linking.openURL('https://aviobrand.com/report')} style={styles.trustLinkItem}>
-                <AppText style={styles.trustLinkText} weight="bold">Báo cáo trang này</AppText>
+              <Pressable onPress={() => Linking.openURL('mailto:support@aviobrand.com?subject=Report%20profile')} style={styles.trustLinkItem}>
+                <AppText style={styles.trustLinkText} weight="bold">Report this page</AppText>
               </Pressable>
             </View>
 
@@ -520,7 +520,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
             style={({ pressed }) => [styles.viralCard, pressed && styles.pressed]}
             onPress={() => {
               HapticTap.medium();
-              Linking.openURL('https://aviobrand.com').catch(() => undefined);
+              Linking.openURL(PUBLIC_PROFILE_HOST).catch(() => undefined);
             }}
           >
             <Image
@@ -542,7 +542,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
                 {`Tạo ấn tượng với mọi đối tác như ${bio.displayName.split(' ')[0]}!`}
               </AppText>
               <AppText style={styles.viralSub}>
-                Tạo trang danh tính AVIO Smart Pass trong 60 giây. Đối tác không cần cài ứng dụng.
+                Create your free SiteHub profile in 60 seconds. No app required.
               </AppText>
             </View>
           </Pressable>
