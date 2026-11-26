@@ -125,7 +125,18 @@ export async function verifyNfcUrl(signedUrl: string): Promise<string | null> {
         return null;
       }
     }
-    
+
+    // Bind the URL path to the signed payload: rewriting /c/<other-card> around a
+    // valid signature must not redirect verification to a different card.
+    const pathCardId = decodeURIComponent(url.pathname.split('/').filter(Boolean).pop() ?? '');
+    if (pathCardId !== payload.cardId) {
+      console.error('[NFC SECURITY] URL path does not match signed payload', {
+        pathCardId,
+        payloadCardId: payload.cardId,
+      });
+      return null;
+    }
+
     return payload.cardId;
   } catch (error) {
     console.error('[NFC] URL verification failed', error);

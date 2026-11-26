@@ -4,6 +4,19 @@
  * Note: requires jest + a test environment with expo-crypto available.
  */
 
+// firebaseClient initialises the real Firebase app — replace with a stub.
+jest.mock('@/src/services/firebaseClient', () => ({ db: {} }));
+// expo-crypto has no JS implementation for digestStringAsync; use node crypto.
+jest.mock('expo-crypto', () => {
+  const nodeCrypto = require('crypto');
+  return {
+    digestStringAsync: jest.fn(async (_algo: string, input: string) =>
+      nodeCrypto.createHash('sha256').update(input).digest('hex')
+    ),
+    CryptoDigestAlgorithm: { SHA256: 'SHA-256' },
+  };
+});
+
 import {
   encryptNfcUrl,
   verifyNfcUrl,
@@ -61,6 +74,22 @@ describe('NFC Encryption Service', () => {
       const url = await encryptNfcUrl(mockCardId);
       const tampered = url.replace(mockCardId, 'card_tampered');
       await expect(verifyNfcUrl(tampered)).resolves.toBeNull();
+    });
+
+    it('rejects an expired payload', async () => {
+      const expired = {
+        cardId: mockCardId,
+        signature: 'whatever',
+        timestamp: Date.now() - 400 * 24 * 60 * 60 * 1000,
+        expiresAt: Date.now() - 1000, // already expired
+        version: 'v1',
+      };
+      const url = `${PUBLIC_PROFILE_HOST}/c/${mockCardId}?s=${btoa(JSON.stringify(expired))}`;
+      await expect(verifyNfcUrl(url)).resolves.toBeNull();
+    });
+
+    it('accepts an unsigned legacy URL (Phase 1 backward compatibility)', async () => {
+      await expect(verifyNfcUrl(`${PUBLIC_PROFILE_HOST}/c/${mockCardId}`)).resolves.toBe(mockCardId);
     });
 
     it('rejects a forged payload', async () => {
